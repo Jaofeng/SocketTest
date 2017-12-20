@@ -6,6 +6,8 @@ from jfSocket import EventTypes as ets, TcpClient
 _clients = {}
 _result = {}
 _times = 0
+_timer = {}
+_success = {}
 
 def connectToServer(*args):
     print('Connect to Server {}:{}'.format(args[0], args[1]))
@@ -31,6 +33,10 @@ def disconnectWithServer():
 def onConnected(*args):
     print('  -> Connected to server, local port {}'.format(args[1][1]))
     _clients[int(args[1][1])] = args[0]
+    hostStr = ':'.join([str(x) for x in (args[0].host)])
+    _timer[hostStr] = 0.0
+    _counter[hostStr] = 0
+    _success[hostStr] = 0
     thd = threading.Thread(target=randomThread, args=(args[0], _times, ))
     thd.start()
 def onDisconnect(*args):
@@ -41,14 +47,18 @@ def onReceived(*args):
     remote = args[0].remote
     hostStr = ':'.join([str(x) for x in (args[0].host)])
     if _result.has_key(hostStr):
-        print(u'  -> [{}] Received data from \u001b[32m{}:{}\u001b[0m - {:.3f}ms\n     : \u001b[35m{}\u001b[0m'.format(
-            time.strftime("%H:%M:%S"), remote[0], remote[1], (time.time() - _result[hostStr]) * 1000, args[1].encode('hex')))
+        tmr = time.time() - _result[hostStr]
+        _timer[hostStr] += tmr
+        _counter[hostStr] += 1
+        _success[hostStr] += 1
+        # print(u'  -> [{}] Received data from \u001b[32m{}:{}\u001b[0m - {:.3f}ms\n     : \u001b[35m{}\u001b[0m'.format(
+        #     time.strftime("%H:%M:%S"), remote[0], remote[1], tmr * 1000, args[1].encode('hex')))
         del _result[hostStr]
     else:
         print(u'\u001b[40;32m  -> [{}] Received Unknow data from \u001b[32m{}:{}\u001b[0m\n     : \u001b[35m{}\u001b[0m'.format(time.strftime("%H:%M:%S"), remote[0], remote[1], args[1].encode('hex')))
 def onSended(*args):
     addr = args[0].remote
-    print(u'  -> [{}] Send data to \u001b[32m{}:{}\u001b[0m\n     : \u001b[34m{}\u001b[0m'.format(time.strftime("%H:%M:%S"), addr[0], addr[1], args[1].encode('hex')))
+    # print(u'  -> [{}] Send data to \u001b[32m{}:{}\u001b[0m\n     : \u001b[34m{}\u001b[0m'.format(time.strftime("%H:%M:%S"), addr[0], addr[1], args[1].encode('hex')))
 def onSendFail(*args):
     addr = args[0].remote
     print(u'  -> [{}] Send data to \u001b[32m{}:{}\u001b[0m fail\n     : \u001b[31m{}\u001b[0m'.format(time.strftime("%H:%M:%S"), addr[0], addr[1], args[1].encode('hex')))
@@ -82,7 +92,16 @@ def waitStdin():
                     except:
                         print(traceback.format_exc())
                 elif cmds[0] == 'test':
-                    pressureTest(*(cmds[1:]))
+                    global _times
+                    _times = int(cmds[2])
+                    global _timer
+                    _timer = {}
+                    global _counter
+                    _counter = {}
+                    global _success
+                    _success = {}
+                    td = threading.Thread(target=pressureTest, args=(int(cmds[1]), int(cmds[2]), ))
+                    td.start()
                     pass
             except:
                 print(traceback.format_exc())
@@ -100,17 +119,33 @@ def sendData(*args):
         print('Command error')
     except KeyError:
         print('Connection({}) not found'.format(args[0]))
-def pressureTest(*args):
-    global _times
-    _times = int(args[1])
-    for _ in range(0, int(args[0])):
+def pressureTest(connections, times):
+    for _ in range(0, connections):
         connectToServer(*('127.0.0.1', 20000))
-    while len(_clients) != int(args[0]):
+    while len(_clients) != connections:
         time.sleep(0.1)
     print('Connection created!!\n')
-    while len(_clients) != 0:
-        time.sleep(0.1)
-    print(u'\u001b[2J')
+    for _ in range(0,connections+5):
+        print
+    done = 0
+    while done < connections:
+        sys.stdout.write(u'\u001b[1000D') # Move left
+        sys.stdout.write(u'\u001b[{}A'.format(connections)) # Move up
+        done = 0
+        for x in _counter:
+            progress = int(float(_counter[x]) / _times * 100)
+            width = progress / 2
+            print(u'\u001b[32m{}\u001b[0m [\u001b[34m{}\u001b[0m{}] {:3d}%'.format(x, ''.ljust(width, '#'), ''.ljust(50 - width, ' '), progress))
+            if _counter[x] == _times:
+                done += 1
+    sys.stdout.write(u'\u001b[1000D') # Move left
+    sys.stdout.write(u'\u001b[{}A'.format(connections)) # Move up
+    for x in _counter:
+        print(u'\u001b[32m{}\u001b[0m [\u001b[34m{}\u001b[0m] {:3d}%'.format(x, ''.ljust(width, '#'), progress))
+    print('All done...')
+    for x in _timer:
+        print(u'[**] \u001b[32m{}\u001b[0m Finish!! Use:\u001b[32m{:.3f}ms\u001b[0m, Agv:\u001b[35m{:.3f}ms\u001b[0m, Success:\u001b[36m{:3.1f}\u001b[0m%'.format(x, _timer[x] * 1000, _timer[x]/times * 1000, float(_success[x])/times * 100))
+        _clients[int(x.split(':')[1])].close()
 
 def randomStr(cnt):
     res = ''
@@ -120,8 +155,8 @@ def randomStr(cnt):
 def randomThread(client, times):
     addr = client.host
     addrStr = ':'.join([str(x) for x in (addr)])
-    for _ in range(0, times):
-        time.sleep(random.uniform(0, 2) + 0.1)
+    for i in range(0, times):
+        # time.sleep(random.uniform(0, 2) + 0.1)
         rs = randomStr(random.randint(10, 20))
         _result[addrStr] = time.time()
         client.send(rs)
@@ -129,9 +164,8 @@ def randomThread(client, times):
         while _result.has_key(addrStr) and time.time() - now <= 2:
             time.sleep(0.05)
         if _result.has_key(addrStr):
-            print(u'\u001b[31m[***] {} miss loopback!\u001b[0m'.format(addrStr))
-    print(u'\u001b[32m{} Finish!!\u001b[0m'.format(addrStr))
-    client.close()
+            _counter[addrStr] += 1
+            # print(u'\u001b[31m[***]\u001b[0m \u001b[32m{}\u001b[0m \u001b[31mmiss loopback!\u001b[0m'.format(addrStr))
 
 if __name__ == '__main__':
     waitStdin()
