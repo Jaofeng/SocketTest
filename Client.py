@@ -8,6 +8,8 @@ _result = {}
 _times = 0
 _timer = {}
 _success = {}
+_counter = {}
+_svrPort = None
 
 def connectToServer(*args):
     print('Connect to Server {}:{}'.format(args[0], args[1]))
@@ -65,6 +67,13 @@ def onSendFail(*args):
 
 def waitStdin():
     cmd = ''
+    global _clients
+    global _result
+    global _svrPort
+    global _times
+    global _timer
+    global _counter
+    global _success
     while cmd != 'exit':
         try:
             cmd = raw_input('client: ')
@@ -78,12 +87,15 @@ def waitStdin():
                 elif cmds[0] == 'send':
                     sendData(*(cmds[1:]))
                 elif cmds[0] == 'connect':
+                    if _svrPort is None:
+                        print('No set server ip and port...')
+                        continue
                     if len(cmds) == 1:
                         cnt = 1
                     else:
                         cnt = int(cmds[1])
                     for _ in range(0, cnt):
-                        connectToServer(*('127.0.0.1', 20000))
+                        connectToServer(*(_svrPort))
                         time.sleep(0.1)
                 elif cmds[0] == 'close':
                     try:
@@ -91,18 +103,18 @@ def waitStdin():
                             _clients[cmds[1]].close()
                     except:
                         print(traceback.format_exc())
+                elif cmds[0] == 'set':
+                    _svrPort = [cmds[1], int(cmds[2])]
                 elif cmds[0] == 'test':
-                    global _times
+                    if _svrPort is None:
+                        print('No set server ip and port...')
+                        continue
                     _times = int(cmds[2])
-                    global _timer
                     _timer = {}
-                    global _counter
                     _counter = {}
-                    global _success
                     _success = {}
                     td = threading.Thread(target=pressureTest, args=(int(cmds[1]), int(cmds[2]), ))
                     td.start()
-                    pass
             except:
                 print(traceback.format_exc())
         except KeyboardInterrupt:
@@ -121,7 +133,7 @@ def sendData(*args):
         print('Connection({}) not found'.format(args[0]))
 def pressureTest(connections, times):
     for _ in range(0, connections):
-        connectToServer(*('127.0.0.1', 20000))
+        connectToServer(*(_svrPort))
     while len(_clients) != connections:
         time.sleep(0.1)
     print('Connection created!!\n')
@@ -144,7 +156,7 @@ def pressureTest(connections, times):
         print(u'\u001b[32m{}\u001b[0m [\u001b[34m{}\u001b[0m] {:3d}%'.format(x, ''.ljust(width, '#'), progress))
     print('All done...')
     for x in _timer:
-        print(u'[**] \u001b[32m{}\u001b[0m Finish!! Use:\u001b[32m{:.3f}ms\u001b[0m, Agv:\u001b[35m{:.3f}ms\u001b[0m, Success:\u001b[36m{:3.1f}\u001b[0m%'.format(x, _timer[x] * 1000, _timer[x]/times * 1000, float(_success[x])/times * 100))
+        print(u'[**] \u001b[32m{}\u001b[0m Finish!! Use:\u001b[32m{:.3f}ms\u001b[0m, Agv:\u001b[35m{:.3f}ms\u001b[0m, Success:\u001b[36m{:-3.1f}\u001b[0m%'.format(x, _timer[x] * 1000, _timer[x]/times * 1000, float(_success[x])/times * 100))
         _clients[int(x.split(':')[1])].close()
 
 def randomStr(cnt):
