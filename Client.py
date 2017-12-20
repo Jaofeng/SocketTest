@@ -108,7 +108,7 @@ def pressureTest(*args):
     while len(_clients) != int(args[0]):
         time.sleep(0.1)
     print('Connection created!!\n')
-    while len(_clients) != 0
+    while len(_clients) != 0:
         time.sleep(0.1)
     print(u'\u001b[2J')
 

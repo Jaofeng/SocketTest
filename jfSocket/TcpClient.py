@@ -22,7 +22,7 @@ class TcpClient(object):
         self.__remote = None
         self.recvBuffer = 256
         if socket is not None:
-            self.assign(socket)
+            self.__assign(socket)
 
     # Public Properties
     @property
@@ -36,22 +36,16 @@ class TcpClient(object):
         return self.__remote
 
     # Public Methods
-    def assign(self, socket):
-        self.socket = socket
-        self.__host = socket.getsockname()
-        self.__remote = socket.getpeername()
-        self.__handler = td.Thread(target=self.__receiverHandler, args=(socket,))
-        self.__handler.start()
     def connect(self, ip, port):
         if self.socket is not None:
-            raise TcpClientError()
+            raise TcpSocketError()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.socket.connect((ip, int(port)))
         except socket.error as err:
             raise err
         else:
-            self.assign(self.socket)
+            self.__assign(self.socket)
             if self.__events[jskt.EventTypes.CONNECTED] is not None:
                 try:
                     self.__events[jskt.EventTypes.CONNECTED](self, self.host, self.remote)
@@ -72,7 +66,7 @@ class TcpClient(object):
         self.__handler = None
     def send(self, data):
         if not self.isAlive:
-            raise TcpClientError()
+            raise TcpSocketError()
         try:
             self.socket.send(data)
         except Exception as e:
@@ -89,6 +83,12 @@ class TcpClient(object):
                     raise ex
         
     # Private Methods
+    def __assign(self, socket):
+        self.socket = socket
+        self.__host = socket.getsockname()
+        self.__remote = socket.getpeername()
+        self.__handler = td.Thread(target=self.__receiverHandler, args=(socket,))
+        self.__handler.start()
     def __receiverHandler(self, client):
         client.settimeout(2)
         while 1:

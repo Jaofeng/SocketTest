@@ -76,7 +76,7 @@ class TcpServer(object):
             elif self.__clients[remote] is None:
                 raise TypeError()
             elif not self.__clients[remote].isAlive:
-                raise jskt.TcpClientError()
+                raise jskt.TcpSocketError()
             self.__clients[remote].send(data)
         else:
             for x in self.__clients:

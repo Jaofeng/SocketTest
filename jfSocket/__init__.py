@@ -22,6 +22,6 @@ class EventTypes(Enum):
     SERVER_STARTED = 'onStarted'
     SERVER_STOPED = 'onStoped'
 
-class TcpClientError(Exception):
+class TcpSocketError(Exception):
     pass
 
