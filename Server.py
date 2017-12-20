@@ -6,11 +6,11 @@ from jfSocket import EventTypes as ets, TcpServer, TcpClient
 
 _svr = None
 
-def runServers():
-    print 'Creating Listen Server...'
+def runServers(ip, port):
+    print 'Creating Listen Server at {}:{}...'.format(ip, port)
     global _svr
     try:
-        _svr = TcpServer.TcpServer(ip='127.0.0.1', port=20000)
+        _svr = TcpServer.TcpServer(ip=ip, port=port)
     except socket.error as ex:
         if ex.errno == 48:
             print('Address already in use, please try again...')
@@ -18,7 +18,7 @@ def runServers():
             print(ex)
         return False
     else:
-        _svr.name = 'Local'
+        _svr.name = '{}:{}'.format(ip, port)
         _svr.bind(key=ets.SERVER_STARTED, evt=onServerStarted)
         _svr.bind(key=ets.SERVER_STOPED, evt=onServerStoped)
         _svr.bind(key=ets.CONNECTED, evt=onClientConnected)
@@ -63,17 +63,37 @@ def waitStdin():
             cmds = cmd.split( )
             try:
                 if cmds[0] == 'exit':
-                    stopServer()
+                    if _svr is not None and _svr.isAlive:
+                        stopServer()
                     break
-                elif cmds[0] == 'send':
-                    sendData(*(cmds[1:]))
-                elif cmds[0] == 'clients':
-                    showClients()
-                elif cmds[0] == 'close':
-                    if cmds[1] == 'all':
-                        _svr.close()
+                elif cmds[0] == 'start':
+                    if _svr is not None and _svr.isAlive:
+                        print('Server is listening...')
+                    elif not runServers(cmds[1], int(cmds[2])):
+                        break
+                elif cmds[0] == 'stop':
+                    if _svr is not None and _svr.isAlive:
+                        stopServer()
                     else:
-                        closeClient(*(cmds[1:]))
+                        print('Server not start...')
+                elif cmds[0] == 'send':
+                    if _svr is not None and _svr.isAlive:
+                        sendData(*(cmds[1:]))
+                    else:
+                        print('Server not start...')
+                elif cmds[0] == 'clients':
+                    if _svr is not None and _svr.isAlive:
+                        showClients()
+                    else:
+                        print('Server not start...')
+                elif cmds[0] == 'close':
+                    if _svr is not None and _svr.isAlive:
+                        if cmds[1] == 'all':
+                            _svr.close()
+                        else:
+                            closeClient(*(cmds[1:]))
+                    else:
+                        print('Server not start...')
             except:
                 print(traceback.format_exc())
             else:
@@ -128,6 +148,5 @@ def closeClient(*args):
         
     
 if __name__ == '__main__':
-    if runServers():
-        waitStdin()
+    waitStdin()
     exit(0)
