@@ -38,7 +38,7 @@ class TcpClient(object):
     # Public Methods
     def connect(self, ip, port):
         if self.socket is not None:
-            raise TcpSocketError()
+            raise jskt.TcpSocketError()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.socket.connect((ip, int(port)))
@@ -66,7 +66,7 @@ class TcpClient(object):
         self.__handler = None
     def send(self, data):
         if not self.isAlive:
-            raise TcpSocketError()
+            raise jskt.TcpSocketError()
         try:
             self.socket.send(data)
         except Exception as e:
@@ -99,18 +99,18 @@ class TcpClient(object):
             except socket.error as ex:
                 break
             except:
-                print(traceback.format_exc())
+                # print(traceback.format_exc())
                 break
             if not data: 
-                # Client Disconnect
+                # Remote Disconnect
                 break
             else:
                 # Received Data
                 if len(data) == 0:
-                    print('[**] Data length = 0')
+                    # print('[**] Data length = 0')
                     break
                 elif len([x for x in data if ord(x) == 0x04]) == len(data):
-                    print('[**] Client terminated:({}){}'.format(len(data), data.encode('hex')))
+                    # print('[**] Client terminated:({}){}'.format(len(data), data.encode('hex')))
                     break
                 if self.__events[jskt.EventTypes.RECEIVED] is not None:
                     try:
@@ -120,8 +120,7 @@ class TcpClient(object):
         if self.__events[jskt.EventTypes.DISCONNECT] is not None:
             try:
                 self.__events[jskt.EventTypes.DISCONNECT](self, self.host, self.remote)
-            # except Exception as ex:
-            #     raise ex
-            except:
-                print(traceback.format_exc())
+            except Exception as ex:
+                # print(traceback.format_exc())
+                raise ex
 
