@@ -24,14 +24,14 @@ jfSocket - TcpServer & TcpClient Package
 ```python
 TcpServer.host
 ```
-唯獨，回傳 tuple(ip, port) 型別
+唯獨，回傳 tuple(ip, port) 型別
 
 ---
 ### 伺服器是否處於等待連線中
 ```python
 TcpServer.isAlive
 ```
-唯獨，回傳 True / False
+唯獨，回傳 True / False
 
 ---
 ### 已連接的連線資訊
@@ -46,11 +46,11 @@ TcpServer.clients
 ```python
 TcpServer.TcpServer(ip, port)
 ```
-* *ip* : 本端 IP  
+* *ip* : 本端 IP  
 * *port* : 通訊埠號
 
 ---
-### 啟動 TcpServer 伺服器，開始等待遠端連線
+### 啟動 TcpServer 伺服器，開始等待遠端連線
 ```python
 TcpServer.start()
 ```
