@@ -134,27 +134,28 @@ class TcpClient(object):
         self.__handler = td.Thread(target=self.__receiverHandler, args=(socket,))
         self.__handler.start()
     def __receiverHandler(self, client):
+        # 使用非阻塞方式等待資料，逾時時間為 2 秒
         client.settimeout(2)
         while 1:
             try:
                 data = client.recv(self.recvBuffer)
             except socket.timeout:
+                # 等待資料逾時，再重新等待
                 continue
-            except socket.error as ex:
-                break
             except:
-                # print(traceback.format_exc())
+                # 先攔截並顯示，待未來確定可能會發生的錯誤再進行處理
+                print(traceback.format_exc())
                 break
             if not data: 
-                # Remote Disconnect
+                # 空資料，認定遠端已斷線
                 break
             else:
                 # Received Data
                 if len(data) == 0:
-                    # print('[**] Data length = 0')
+                    # 空資料，認定遠端已斷線
                     break
                 elif len([x for x in data if ord(x) == 0x04]) == len(data):
-                    # print('[**] Client terminated:({}){}'.format(len(data), data.encode('hex')))
+                    # 收到 EOT(End Of Transmission, 傳輸結束)，則表示已與遠端中斷連線
                     break
                 if self.__events[jskt.EventTypes.RECEIVED] is not None:
                     try:
@@ -165,6 +166,5 @@ class TcpClient(object):
             try:
                 self.__events[jskt.EventTypes.DISCONNECT](self, self.host, self.remote)
             except Exception as ex:
-                # print(traceback.format_exc())
                 raise ex
 
