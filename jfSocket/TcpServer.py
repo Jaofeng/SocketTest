@@ -73,15 +73,10 @@ class TcpServer(object):
         """停止等待遠端連線"""
         self.__stop = True
         self.close()
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(self.__host)
         self.__socket.close()
-        # try:
-        #     self.__socket.shutdown(socket.SHUT_RDWR)
-        # except socket.error as ex:
-        #     if ex.errno != 57 and ex.errno != 9:
-        #         print(traceback.format_exc())
         self.__socket = None
-        self.__acceptHandler.join(0.2)
+        if self.__acceptHandler is not None:
+            self.__acceptHandler.join(0.2)
     def bind(self, key=None, evt=None):
         """綁定回呼(callback)函式  
         具名參數:  
@@ -156,15 +151,19 @@ class TcpServer(object):
                 print(traceback.format_exc())
                 #raise ex
     def __accept_client(self):
+        # 使用非阻塞方式等待連線，逾時時間為 1 秒
+        self.__socket.settimeout(1)
         while not self.__stop:
             try:
                 client, addr = self.__socket.accept()
-            except socket.error as ex:
+            except socket.timeout:
+                # 等待連線逾時，再重新等待
+                continue
+            except:
+                # except (socket.error, IOError) as ex:
+                # 先攔截並顯示，待未來確定可能會發生的錯誤再進行處理
                 print(traceback.format_exc())
                 break
-            except IOError as ex:
-                print(traceback.format_exc())
-                continue
             if self.__stop:
                 try:
                     client.close()
@@ -177,7 +176,6 @@ class TcpServer(object):
             clk.bind(key=jskt.EventTypes.SENDED, evt=self.__events[jskt.EventTypes.SENDED])
             clk.bind(key=jskt.EventTypes.SENDFAIL, evt=self.__events[jskt.EventTypes.SENDFAIL])
             self.__clients[addr] = clk
-            # print('[**] Acepted connection from: {}:{}'.format(addr[0], addr[1]))
             if self.__events[jskt.EventTypes.CONNECTED] is not None:
                 try:
                     self.__events[jskt.EventTypes.CONNECTED](clk, self.__host, addr)
