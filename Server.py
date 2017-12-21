@@ -17,7 +17,7 @@ def runServers(ip, port):
         else:
             print(ex)
         return False
-    else:
+    try:
         _svr.name = '{}:{}'.format(ip, port)
         _svr.bind(key=ets.SERVER_STARTED, evt=onServerStarted)
         _svr.bind(key=ets.SERVER_STOPED, evt=onServerStoped)
@@ -27,6 +27,10 @@ def runServers(ip, port):
         _svr.bind(key=ets.SENDED, evt=onSended)
         _svr.bind(key=ets.SENDFAIL, evt=onSendFail)
         _svr.start()
+    except Exception as ex:
+        print(ex)
+        return False
+    else:
         return True
 
 def stopServer():
