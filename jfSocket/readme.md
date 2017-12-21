@@ -5,7 +5,7 @@ jfSocket - TcpServer & TcpClient Package
 |---|---
 |E-mail|jaofeng.chen@gmail.com
 
-
+***
 # class EventTypes(Enum):
 ```python
 class EventTypes(Enum):
@@ -30,7 +30,7 @@ class EventTypes(Enum):
 * *SENDED* : 已將資料發送至遠端時
 * *SENDFAIL* : 發送資料失敗時
 
-
+***
 # class TcpSocketError(Exception):
 ```python
 class TcpSocketError(Exception):
@@ -38,7 +38,17 @@ class TcpSocketError(Exception):
 ```
 用於錯誤回傳
 
+***
 # class TcpServer(object):
+## Construct:
+```python
+TcpServer.TcpServer(ip, port)
+```
+以 TCP 為連線基礎的 Socket Server  
+* **ip** : `str` - 本端伺服器 IPv4 位址
+* **port** : `int` - 本端欲開啟傾聽的通訊埠號
+
+---
 ## Properties:
 ### host(readonly)
 ```python
@@ -59,8 +69,9 @@ TcpServer.isAlive
 TcpServer.clients
 ```
 傳回已連接的連線資訊  
-**唯讀**，回傳 `dictionary{ tuple(ip, port) : <TcpClient>, ... }`
+**唯讀**，回傳 `dict{ tuple(ip, port) : <TcpClient>, ... }`
 
+---
 ## Functions:
 ### TcpServer()
 ```python
@@ -84,7 +95,7 @@ TcpServer.stop()
 
 ### bind()
 ```python
-TcpServer.bind(key=Enum(EventTypes), evt=def)
+TcpServer.bind(key=None, evt=None)
 ```
 綁定回呼(callback)函式
 * *key* : `str` - 回呼事件代碼，字串格式，避免錯誤引用，請直接使用 ***EventTypes*** 列舉值
@@ -105,7 +116,17 @@ TcpServer.send(data, remote=None)
 * *data* : `str` - 欲傳送到遠端的資料
 * *remote* : `tuple(ip, port)` - 欲傳送的遠端連線位址；未傳入時，則發送給所有連線
 
+***
 # class TcpClient(object):
+## Construct:
+```python
+TcpClient.TcpClient(socket=None, evts=None)
+```
+用於定義可回呼的 TCP 連線型態的 Socket Client
+* **socket** : `socket` - 承接的 Socket 類別，預設為 `None`
+* **evts** : `dict{str:def, ...}` - 定義 TcpClient 的回呼函式，預設為 `None`
+
+---
 ## Properties:
 ### isAlive(readonly)
 ```python
@@ -128,6 +149,7 @@ TcpClient.remote
 取得遠端的通訊埠號  
 **唯讀**，回傳 `tuple(ip, port)` 型別
 
+---
 ## Functions:
 ### connect()
 ```python
@@ -139,7 +161,7 @@ TcpClient.connect(ip, port)
 
 ### bind()
 ```python
-TcpClient.bind(key=Enum(EventTypes), evt=def)
+TcpClient.bind(key=None, evt=None)
 ```
 綁定回呼(callback)函式
 * *key* : `str` - 回呼事件代碼，字串格式，避免錯誤引用，請直接使用 ***EventTypes*** 列舉值
@@ -156,10 +178,11 @@ TcpClient.close()
 TcpClient.send(data)
 ```
 發送資料至遠端伺服器
-* *data* : `str` - 欲傳送到的資料
+* *data* : `str` - 欲傳送到伺服器的資料
 
+***
 # 回呼(Callback)函式格式定義
-為提供 TcpServer 與 TcpClient 的事件回傳，請參閱以下格式定義回呼函式：
+為提供 TcpServer 與 TcpClient 的事件回傳，請使用以下格式定義回呼函式：
 ```python
 def callbackName(*args):
     pass
