@@ -94,7 +94,7 @@ class TcpClient(object):
             raise TypeError('evt:\'{}\' is not a function!'.format(evt))
         self.__events[key] = evt
     def close(self):
-        """關閉與遠端伺服器的連線"""
+        """關閉與遠端伺服器的連線"""
         if self.socket is not None:
             self.socket.close()
         self.socket = None
