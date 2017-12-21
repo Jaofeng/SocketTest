@@ -5,9 +5,9 @@ import jfSocket as jskt
 import threading as td, socket
 
 class TcpServer(object):
-    """遠端以連線之事件
-
-    格式：function(client:socket)
+    """以 TCP 為連線基礎的 Socket Server  
+    ip : str - 提供連線的 IPv4 位址
+    port : int - 提供連接的通訊埠號
     """
     def __init__(self, ip, port):
         self.__host = (ip, port)
@@ -30,15 +30,33 @@ class TcpServer(object):
     #Public Properties
     @property
     def host(self):
+        """回傳本端提供連線的通訊埠號  
+        回傳: 
+        `tuple(ip, port)`
+        """
         return self.__host
     @property
     def isAlive(self):
+        """取得伺服器是否處於等待連線中  
+        回傳: 
+        `True` / `False`  
+            *True* : 等待連線中  
+            *False* : 停止等待
+        """
         return self.__acceptHandler is not None and self.__acceptHandler.isAlive()
     @property
     def clients(self):
+        """傳回已連接的連線資訊  
+        回傳:
+            `dictionary{ tuple(ip, port) : <TcpClient>, ... }`
+        """
         return self.__clients.copy()
     # Public Methods
     def start(self):
+        """啟動 TcpServer 伺服器，開始等待遠端連線          
+        引發錯誤:   
+            `Exception` -- 回呼的錯誤函式
+        """
         self.__socket.listen(5)
         self.__acceptHandler = td.Thread(target=self.__accept_client)
         self.__acceptHandler.setDaemon(True)
@@ -52,6 +70,7 @@ class TcpServer(object):
             except Exception as ex:
                 raise ex
     def stop(self):
+        """停止等待遠端連線"""
         self.__stop = True
         self.close()
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(self.__host)
@@ -63,13 +82,32 @@ class TcpServer(object):
         #         print(traceback.format_exc())
         self.__socket = None
         self.__acceptHandler.join(0.2)
-    def bind(self, key, evt):
+    def bind(self, key=None, evt=None):
+        """綁定回呼(callback)函式  
+        具名參數:  
+            `key` `str` -- 回呼事件代碼；為避免錯誤，建議使用 *EventTypes* 列舉值  
+            `evt` `def` -- 回呼(callback)函式  
+        引發錯誤:  
+            `KeyError` -- 回呼事件代碼錯誤  
+            `TypeError` -- 型別錯誤，必須為可呼叫執行的函式
+        """
         if key not in self.__events:
             raise KeyError('key:\'{}\' not found!'.format(key))
         if evt is not None and not callable(evt):
             raise TypeError('evt:\'{}\' is not a function!'.format(evt))
         self.__events[key] = evt
     def send(self, data, remote=None):
+        """發送資料至遠端  
+        傳入參數:  
+            `data` `str` -- 欲傳送到遠端的資料  
+        具名參數:  
+            `remote` `tuple(ip, port)` -- 欲傳送的遠端連線；未傳入時，則發送給所有連線  
+        引發錯誤:  
+            `KeyError` -- 遠端連線不存在  
+            `TypeError` -- 遠端連線不存在  
+            `TcpSocketError` -- 遠端連線已斷開  
+            `Exception` -- 其他錯誤
+        """
         if remote is not None:
             if not self.__clients.has_key(remote):
                 raise KeyError()
@@ -88,6 +126,10 @@ class TcpServer(object):
                 else:
                     del self.__clients[x]
     def close(self, remote=None):
+        """關閉遠端連線  
+        具名參數:  
+            `remote` `tuple(ip, port)` -- 欲關閉的遠端連線；未傳入時，則關閉所有連線  
+        """
         if remote is not None:
             if not self.__clients.has_key(remote):
                 return

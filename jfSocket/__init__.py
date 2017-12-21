@@ -8,9 +8,8 @@
 from enum import Enum, unique
 
 class EventTypes(Enum):
-    """事件代碼列舉
-    
-    提供 SckServer 與 SckClient 回呼用事件的鍵值
+    """事件代碼列舉  
+    提供 `TcpServer` 與 `TcpClient` 回呼用事件的鍵值
     """
     # Common Event
     CONNECTED = 'onConnected'

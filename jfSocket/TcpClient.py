@@ -5,6 +5,11 @@ import jfSocket as jskt
 import threading as td, socket
 
 class TcpClient(object):
+    """用於定義可回呼的 TCP 連線型態的 Socket Client
+    具名參數:  
+        `socket` `socket` -- 承接的 Socket 類別，預設為 `None`  
+        `evts` `dict{str:def,...}` -- 回呼事件定義，預設為 `None`
+    """
     def __init__(self, socket=None, evts=None):
         self.__events = {
             jskt.EventTypes.CONNECTED : None,
@@ -27,16 +32,39 @@ class TcpClient(object):
     # Public Properties
     @property
     def isAlive(self):
+        """取得目前是否正處於連線中  
+        回傳: 
+        `True` / `False`  
+            *True* : 連線中  
+            *False* : 連線已斷開
+        """
         return self.__handler is not None and self.__handler.isAlive()
     @property
     def host(self):
+        """回傳本端的通訊埠號  
+        回傳: 
+        `tuple(ip, port)`
+        """
         return self.__host
     @property
     def remote(self):
+        """回傳遠端伺服器的通訊埠號  
+        回傳: 
+        `tuple(ip, port)`
+        """
         return self.__remote
 
     # Public Methods
     def connect(self, ip, port):
+        """連線至遠端伺服器  
+        傳入參數:  
+            `ip` `str` - 遠端伺服器連線位址  
+            `port` `int` - 遠端伺服器的通訊埠號  
+        引發錯誤:  
+            `TcpSocketError` -- 已有承接的 socket
+            `socket.error' -- 連線時引發的錯誤
+            `Exception` -- 回呼的錯誤函式
+        """
         if self.socket is not None:
             raise jskt.TcpSocketError()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -51,13 +79,22 @@ class TcpClient(object):
                     self.__events[jskt.EventTypes.CONNECTED](self, self.host, self.remote)
                 except Exception as ex:
                     raise ex              
-    def bind(self, key, evt):
+    def bind(self, key=None, evt=None):
+        """綁定回呼(callback)函式  
+        傳入參數:  
+            `key` `str` -- 回呼事件代碼；為避免錯誤，建議使用 *EventTypes* 列舉值  
+            `evt` `def` -- 回呼(callback)函式  
+        引發錯誤:  
+            `KeyError` -- 回呼事件代碼錯誤  
+            `TypeError` -- 型別錯誤，必須為可呼叫執行的函式
+        """
         if key not in self.__events:
             raise KeyError('key:\'{}\' not found!'.format(key))
         if evt is not None and not callable(evt):
             raise TypeError('evt:\'{}\' is not a function!'.format(evt))
         self.__events[key] = evt
     def close(self):
+        """關閉與遠端伺服器的連線"""
         if self.socket is not None:
             self.socket.close()
         self.socket = None
@@ -65,6 +102,13 @@ class TcpClient(object):
             self.__handler.join(0.2)
         self.__handler = None
     def send(self, data):
+        """發送資料至遠端伺服器  
+        傳入參數:  
+            `data` `str` -- 欲傳送到遠端的資料  
+        引發錯誤:  
+            `TcpSocketError` -- 遠端連線已斷開  
+            `Exception` -- 回呼的錯誤函式
+        """
         if not self.isAlive:
             raise jskt.TcpSocketError()
         try:
