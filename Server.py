@@ -153,4 +153,5 @@ def closeClient(*args):
     
 if __name__ == '__main__':
     waitStdin()
+    time.sleep(1)
     exit(0)
