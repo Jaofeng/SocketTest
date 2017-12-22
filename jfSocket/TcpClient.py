@@ -24,6 +24,7 @@ class TcpClient(object):
         self.socket = None
         self.__handler = None
         self.__host = None
+        self.__stop = False
         self.__remote = None
         self.recvBuffer = 256
         if socket is not None:
@@ -61,12 +62,12 @@ class TcpClient(object):
             `ip` `str` - 遠端伺服器連線位址  
             `port` `int` - 遠端伺服器的通訊埠號  
         引發錯誤:  
-            `TcpSocketError` -- 已有承接的 socket
+            `jfSocket.SocketError` -- 連線已存在
             `socket.error' -- 連線時引發的錯誤
             `Exception` -- 回呼的錯誤函式
         """
-        if self.socket is not None:
-            raise jskt.TcpSocketError()
+        if self.isAlive:
+            raise jskt.SocketError(1000)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.socket.connect((ip, int(port)))
@@ -95,22 +96,23 @@ class TcpClient(object):
         self.__events[key] = evt
     def close(self):
         """關閉與遠端伺服器的連線"""
+        self.__stop = True
         if self.socket is not None:
             self.socket.close()
         self.socket = None
         if self.__handler is None:
-            self.__handler.join(0.2)
+            self.__handler.join(2.5)
         self.__handler = None
     def send(self, data):
         """發送資料至遠端伺服器  
         傳入參數:  
             `data` `str` -- 欲傳送到遠端的資料  
         引發錯誤:  
-            `TcpSocketError` -- 遠端連線已斷開  
+            `jfSocket.SocketError` -- 遠端連線已斷開  
             `Exception` -- 回呼的錯誤函式
         """
         if not self.isAlive:
-            raise jskt.TcpSocketError()
+            raise jskt.SocketError(1001)
         try:
             self.socket.send(data)
         except Exception as e:
@@ -132,16 +134,20 @@ class TcpClient(object):
         self.__host = socket.getsockname()
         self.__remote = socket.getpeername()
         self.__handler = td.Thread(target=self.__receiverHandler, args=(socket,))
+        self.__stop = False
         self.__handler.start()
     def __receiverHandler(self, client):
         # 使用非阻塞方式等待資料，逾時時間為 2 秒
         client.settimeout(2)
-        while 1:
+        while not self.__stop:
             try:
                 data = client.recv(self.recvBuffer)
             except socket.timeout:
                 # 等待資料逾時，再重新等待
-                continue
+                if self.__stop:
+                    break
+                else:
+                    continue
             except:
                 # 先攔截並顯示，待未來確定可能會發生的錯誤再進行處理
                 print(traceback.format_exc())
@@ -161,10 +167,10 @@ class TcpClient(object):
                     try:
                         self.__events[jskt.EventTypes.RECEIVED](self, data)
                     except Exception as ex:
-                        raise ex
+                        raise
         if self.__events[jskt.EventTypes.DISCONNECT] is not None:
             try:
                 self.__events[jskt.EventTypes.DISCONNECT](self, self.host, self.remote)
             except Exception as ex:
-                raise ex
+                raise
 

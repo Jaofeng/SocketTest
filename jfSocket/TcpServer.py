@@ -13,8 +13,8 @@ class TcpServer(object):
         self.__host = (ip, port)
         self.__acceptHandler = None
         self.__events = {
-            jskt.EventTypes.SERVER_STARTED : None,
-            jskt.EventTypes.SERVER_STOPED : None,
+            jskt.EventTypes.STARTED : None,
+            jskt.EventTypes.STOPED : None,
             jskt.EventTypes.CONNECTED : None,
             jskt.EventTypes.DISCONNECT : None,
             jskt.EventTypes.RECEIVED : None,
@@ -64,9 +64,9 @@ class TcpServer(object):
         now = time.time()
         while not self.__acceptHandler.isAlive and (time.time() - now) <= 1:
             time.sleep(0.1)
-        if self.isAlive and self.__events[jskt.EventTypes.SERVER_STARTED] is not None:
+        if self.isAlive and self.__events[jskt.EventTypes.STARTED] is not None:
             try:
-                self.__events[jskt.EventTypes.SERVER_STARTED](self)
+                self.__events[jskt.EventTypes.STARTED](self)
             except Exception as ex:
                 raise ex
     def stop(self):
@@ -76,7 +76,7 @@ class TcpServer(object):
         self.__socket.close()
         self.__socket = None
         if self.__acceptHandler is not None:
-            self.__acceptHandler.join(0.2)
+            self.__acceptHandler.join(1.5)
     def bind(self, key=None, evt=None):
         """綁定回呼(callback)函式  
         具名參數:  
@@ -100,7 +100,7 @@ class TcpServer(object):
         引發錯誤:  
             `KeyError` -- 遠端連線不存在  
             `TypeError` -- 遠端連線不存在  
-            `TcpSocketError` -- 遠端連線已斷開  
+            `jfSocket.SocketError` -- 遠端連線已斷開  
             `Exception` -- 其他錯誤
         """
         if remote is not None:
@@ -109,7 +109,7 @@ class TcpServer(object):
             elif self.__clients[remote] is None:
                 raise TypeError()
             elif not self.__clients[remote].isAlive:
-                raise jskt.TcpSocketError()
+                raise jskt.SocketError(1001)
             self.__clients[remote].send(data)
         else:
             for x in self.__clients:
@@ -181,9 +181,9 @@ class TcpServer(object):
                     self.__events[jskt.EventTypes.CONNECTED](clk, self.__host, addr)
                 except Exception as ex:
                     raise ex
-        if self.__events[jskt.EventTypes.SERVER_STOPED] is not None:
+        if self.__events[jskt.EventTypes.STOPED] is not None:
             try:
-                self.__events[jskt.EventTypes.SERVER_STOPED](self)
+                self.__events[jskt.EventTypes.STOPED](self)
             except Exception as ex:
                 raise ex
             

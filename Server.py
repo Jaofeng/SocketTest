@@ -19,8 +19,8 @@ def runServers(ip, port):
         return False
     try:
         _svr.name = '{}:{}'.format(ip, port)
-        _svr.bind(key=ets.SERVER_STARTED, evt=onServerStarted)
-        _svr.bind(key=ets.SERVER_STOPED, evt=onServerStoped)
+        _svr.bind(key=ets.STARTED, evt=onServerStarted)
+        _svr.bind(key=ets.STOPED, evt=onServerStoped)
         _svr.bind(key=ets.CONNECTED, evt=onClientConnected)
         _svr.bind(key=ets.DISCONNECT, evt=onClientDisconnect)
         _svr.bind(key=ets.RECEIVED, evt=onReceived)
