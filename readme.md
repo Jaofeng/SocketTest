@@ -22,6 +22,9 @@ jfSocket - Custom Socket Package
 * [回呼函式格式](#回呼函式格式)
 * [錯誤代碼表](#錯誤代碼表)
 * [範例程式說明](#範例程式說明)
+    * [Server.py](#serverpy)
+    * [Client.py](#clientpy)
+    * [Multicast](#multicastpy)
 
 ***
 # Classes
@@ -205,7 +208,7 @@ TcpClient.send(data)
 ```python
 CastReceiver.CastReceiver(host, evts=None)
 ```
-建立一個接收 Multicast 多播的連線類別  
+建立一個接收 Multicast 多播的連線類別  
 * *host* : `int` - 本端伺服器 IPv4 位址
 * *evts* : `dict{str:def, ...}` - 定義 CastReceiver 的回呼函式，預設為 `None`
 
@@ -221,7 +224,7 @@ CastReceiver.recvBuffer
 CastReceiver.groups
 ```
 取得已註冊監聽的群組 IP  
-**唯讀**，回傳 `list(str, ...)` 型別
+**唯讀**，回傳 `list(str, ...)` 型別
 
 #### host(readonly)
 ```python
@@ -279,7 +282,7 @@ CastReceiver.bind(key=None, evt=None)
 ```python
 CastSender.CastSender(evts=None)
 ```
-建立一個發送 Multicast 多播的連線類別  
+建立一個發送 Multicast 多播的連線類別  
 * *evts* : `dict{str:def, ...}` - 定義 CastSender 的回呼函式，預設為 `None`
 
 ### Functions:
@@ -301,7 +304,7 @@ CastSender.send(remote, data)
 
 ***
 # 回呼函式格式
-為提供 jfSocket 所有類別物件的事件回傳，請使用以下格式定義回呼函式：
+為提供 jfSocket 所有類別物件的事件回傳，請使用以下格式定義回呼函式：
 ```python
 def callbackName(*args):
     pass
