@@ -37,10 +37,10 @@ class EventTypes(Enum):
     SENDFAIL = 'onSendFail' 
 ```
 回呼(callback)事件代碼列舉值，每一列舉值的意義如下：
-* *SERVER_STARTED* : 
+* *STARTED* : 
     * *TcpServer* : 伺服器啟動並可接受遠端連線時
     * *CastReceiver* : 多播監聽機制已啟動
-* *SERVER_STOPED* : 
+* *STOPED* : 
     * *TcpServer* : 伺服器停止接收連線時
     * *CastReceiver* : 多播監聽機制已停止
 * *CONNECTED* : 
@@ -59,8 +59,8 @@ class EventTypes(Enum):
 jfSocket.SocketError(errno, err=None):
 ```
 用於錯誤回傳
-* **errno** : `int` - 錯誤號碼，對應說明請參閱[錯誤代碼表](#錯誤代碼表)
-* **err** : `Exception` - 內部錯誤
+* *errno* : `int` - 錯誤號碼，對應說明請參閱[錯誤代碼表](#錯誤代碼表)
+* *err* : `Exception` - 內部錯誤
 
 ***
 ## TcpServer
@@ -69,8 +69,8 @@ jfSocket.SocketError(errno, err=None):
 TcpServer.TcpServer(ip, port)
 ```
 以 TCP 為連線基礎的 Socket Server  
-* **ip** : `str` - 本端伺服器 IPv4 位址
-* **port** : `int` - 本端欲開啟傾聽的通訊埠號
+* *ip* : `str` - 本端伺服器 IPv4 位址
+* *port* : `int` - 本端欲開啟傾聽的通訊埠號
 
 ### Properties:
 #### host(readonly)
@@ -112,8 +112,8 @@ TcpServer.stop()
 TcpServer.bind(key=None, evt=None)
 ```
 綁定回呼(callback)函式
-* *key* : `str` - 回呼事件代碼，字串格式，避免錯誤引用，請直接使用 ***EventTypes*** 列舉值
-* *evt* : `def` 回呼(callback)函式
+* *key* : `str` - 回呼事件代碼，字串格式，避免錯誤引用，請直接使用 ***[EventTypes](#eventtypes)*** 列舉值
+* *evt* : `def` - 回呼(callback)函式
 
 #### close()
 ```python
@@ -137,10 +137,16 @@ TcpServer.send(data, remote=None)
 TcpClient.TcpClient(socket=None, evts=None)
 ```
 用於定義可回呼的 TCP 連線型態的 Socket Client
-* **socket** : `socket` - 承接的 Socket 類別，預設為 `None`
-* **evts** : `dict{str:def, ...}` - 定義 TcpClient 的回呼函式，預設為 `None`
+* *socket* : `socket` - 承接的 Socket 類別，預設為 `None`
+* *evts* : `dict{str:def, ...}` - 定義 TcpClient 的回呼函式，預設為 `None`
 
 ### Properties:
+#### recvBuffer
+```python
+TcpClient.recvBuffer = 256
+```
+取得或設定接收緩衝區大小，預設 256 Bytes
+
 #### isAlive(readonly)
 ```python
 TcpClient.isAlive
@@ -168,16 +174,16 @@ TcpClient.remote
 TcpClient.connect(ip, port)
 ```
 連線至遠端伺服器
-* **ip** : `str` - 遠端伺服器連線位址
-* **port** : `int` - 遠端伺服器的通訊埠號
+* *ip* : `str` - 遠端伺服器連線位址
+* *port* : `int` - 遠端伺服器的通訊埠號
 
 #### bind()
 ```python
 TcpClient.bind(key=None, evt=None)
 ```
 綁定回呼(callback)函式
-* *key* : `str` - 回呼事件代碼，字串格式，避免錯誤引用，請直接使用 ***EventTypes*** 列舉值
-* *evt* : `def` 回呼(callback)函式
+* *key* : `str` - 回呼事件代碼，字串格式，避免錯誤引用，請直接使用 ***[EventTypes](#eventtypes)*** 列舉值
+* *evt* : `def` - 回呼(callback)函式
 
 #### close()
 ```python
@@ -195,11 +201,107 @@ TcpClient.send(data)
 ***
 
 ## CastReceiver
+### Construct:
+```python
+CastReceiver.CastReceiver(host, evts=None)
+```
+建立一個接收 Multicast 多播的連線類別  
+* *host* : `int` - 本端伺服器 IPv4 位址
+* *evts* : `dict{str:def, ...}` - 定義 CastReceiver 的回呼函式，預設為 `None`
+
+### Properties:
+#### recvBuffer
+```python
+CastReceiver.recvBuffer 
+```
+取得或設定接收緩衝區大小，預設 256 Bytes
+
+#### groups(readonly)
+```python
+CastReceiver.groups
+```
+取得已註冊監聽的群組 IP  
+**唯讀**，回傳 `list(str, ...)` 型別
+
+#### host(readonly)
+```python
+CastReceiver.host
+```
+取得本端的通訊埠號  
+**唯讀**，回傳 `tuple(ip, port)` 型別
+
+#### isAlive(readonly)
+```python
+CastReceiver.isAlive
+```
+取得多播監聽器是否處於監聽中  
+**唯讀**，回傳 `True` / `False`
+
+### Functions:
+#### start()
+```python
+CastReceiver.start()
+```
+啟動多播監聽伺服器
+
+#### stop()
+```python
+CastReceiver.stop()
+```
+停止監聽
+
+#### joinGroup
+```python
+CastReceiver.joinGroup(*ips)
+```
+加入監聽IP
+* *ips* : `list(str, )` - 欲加入監聽的 IP 清單
+
+#### dropGroup
+```python
+CastReceiver.dropGroup(*ips)
+```
+移除監聽 IP
+* *ips* : `list(str, )` - 欲移除監聽的 IP 清單
+
+#### bind()
+```python
+CastReceiver.bind(key=None, evt=None)
+```
+綁定回呼(callback)函式
+* *key* : `str` - 回呼事件代碼，字串格式，避免錯誤引用，請直接使用 ***[EventTypes](#eventtypes)*** 列舉值
+* *evt* : `def` - 回呼(callback)函式
+
+***
 
 ## CastSender
+### Construct:
+```python
+CastSender.CastSender(evts=None)
+```
+建立一個發送 Multicast 多播的連線類別  
+* *evts* : `dict{str:def, ...}` - 定義 CastSender 的回呼函式，預設為 `None`
 
+### Functions:
+#### bind()
+```python
+CastSender.bind(key=None, evt=None)
+```
+綁定回呼(callback)函式
+* *key* : `str` - 回呼事件代碼，字串格式，避免錯誤引用，請直接使用 ***[EventTypes](#eventtypes)*** 列舉值
+* *evt* : `def` - 回呼(callback)函式
+
+#### send()
+```python
+CastSender.send(remote, data)
+```
+發送資料至多播群組中
+* *remote* : `tuple(ip, port)` - 多播位址
+* *data* : `str` - 欲傳送到伺服器的資料
+
+***
 # 回呼函式格式
-為提供 TcpServer 與 TcpClient 的事件回傳，請使用以下格式定義回呼函式：
+為提供 jfSocket 所有類別物件的事件回傳，請使用以下格式定義回呼函式：
 ```python
 def callbackName(*args):
     pass
@@ -207,8 +309,8 @@ def callbackName(*args):
 * *callbackName* : 函式名稱
 * *args* : 回傳之參數 list
 
-每個類別的事件回傳的參數內容不盡相同，其詳細內容如下：
-* TcpServer
+每個類別支援的事件與回傳的參數內容不盡相同，其詳細內容如下：
+* **TcpServer**
     * *STARTED* : `(<TcpServer>)`
     * *STOPED* : `(<TcpServer>)`
     * *CONNECTED* : `(<TcpClient>, host=<tuple(ip, port)>, remote=<tuple(ip, port)>)`
@@ -216,26 +318,35 @@ def callbackName(*args):
     * *RECEIVED* : `(<TcpClient>, data=<str>)`
     * *SENDED* : `(<TcpClient>, data=<str>)`
     * *SENDFAIL* : `(<TcpClient>, data=<str>, err=<Exception>)`
-* TcpClient
+* **TcpClient**
     * *CONNECTED* : `(<TcpClient>, host=<tuple(ip, port)>, remote=<tuple(ip, port)>)`
     * *DISCONNECT* : `(<TcpClient>, host=<tuple(ip, port)>, remote=<tuple(ip, port)>)`
     * *RECEIVED* : `(<TcpClient>, data=<str>)`
     * *SENDED* : `(<TcpClient>, data=<str>)`
     * *SENDFAIL* : `(<TcpClient>, data=<str>, err=<Exception>)`
-* CastReceiver
+* **CastReceiver**
     * *STARTED* : `(<CastReceiver>)`
     * *STOPED* : `(<CastReceiver>)`
     * *RECEIVED* : `(<CastReceiver>, data=<str>)`
-* CastSender
+* **CastSender**
     * *SENDED* : `(<CastSender>, data=<str>)`
     * *SENDFAIL* : `(<CastSender>, data=<str>, err=<Exception>)`
     
 
+***
+
 # 錯誤代碼表
 
+|錯誤代碼|錯誤說明|
+|:---:|---|
+|1000|連線已存在|
+|1001|遠端連線已斷開，或尚未連線|
+|1002|位址已存在|
+|1003|位址不存在|
+|1004|多播(Multicast)位址不正確，應為 224.0.0.0 ~ 239.255.255.255|
+
+***
 # 範例程式說明
-
-
 ## Server.py
 
 
