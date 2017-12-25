@@ -70,7 +70,8 @@ class TcpServer(object):
             except Exception as ex:
                 raise ex
     def stop(self):
-        """停止等待遠端連線"""
+        """停止等待遠端連線
+        """
         self.__stop = True
         self.close()
         self.__socket.close()
