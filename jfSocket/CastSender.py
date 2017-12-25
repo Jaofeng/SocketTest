@@ -5,6 +5,10 @@ import jfSocket as jskt
 import threading as td, socket
 
 class CastSender(object):
+    """建立一個發送 Multicast 多播的連線類別
+    傳入參數:  
+        `evts` `dict{str:def,...}` -- 回呼事件定義，預設為 `None`
+    """
     def __init__(self, evts=None):
         self.__events = {
             jskt.EventTypes.SENDED : None,
