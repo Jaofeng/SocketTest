@@ -24,32 +24,61 @@ class CastReceiver(object):
         if evts:
             for x in evts:
                 self.__events[x] = evts[x]
+        self.__reuseAddr = True
+        self.__reusePort = False
         self.recvBuffer = 256
 
     # Public Properties
     @property
     def groups(self):
         """取得已註冊監聽的群組IP  
-        回傳:  
-            `list(str, ...)` -- 已註冊的IP
+        回傳: `list(str, ...)` -- 已註冊的IP
         """
         return self.__groups[:]
     @property
     def host(self):
         """回傳本端的通訊埠號  
-        回傳: 
-        `tuple(ip, port)`
+        回傳: `tuple(ip, port)`
         """
         return self.__host
     @property
     def isAlive(self):
         """取得多播監聽器是否處於監聽中  
-        回傳: 
-        `True` / `False`  
+        回傳: `boolean`  
             *True* : 等待連線中  
             *False* : 停止等待
         """
         return self.__receiveHandler is not None and self.__receiveHandler.isAlive()
+    @property
+    def reuseAddr(self):
+        """取得是否可重複使用 IP 位置  
+        回傳: `boolean`  
+            *True* : 可重複使用  
+            *False* : 不可重複使用
+        """
+        return self.__reuseAddr
+    @reuseAddr.setter
+    def __reuseAddr(self, value):
+        """設定是否可重複使用 IP 位置  
+        """
+        self.__reuseAddr = value
+        if self.__socket:
+            self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 if self.__reuseAddr else 0)
+    @property
+    def reusePort(self):
+        """取得是否可重複使用通訊埠位  
+        回傳: `boolean`  
+            *True* : 可重複使用  
+            *False* : 不可重複使用
+        """
+        return self.__reusePort
+    @reusePort.setter
+    def __reusePort(self, value):
+        """設定是否可重複使用通訊埠位
+        """
+        self.__reusePort = value
+        if self.__socket:
+            self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1 if self.__reusePort else 0)
 
     # Public Methods
     def start(self):
@@ -59,7 +88,8 @@ class CastReceiver(object):
             `Exception` -- 回呼的錯誤函式
         """
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 if self.__reuseAddr else 0)
+        self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1 if self.__reusePort else 0)
         ip,_ = self.__host
         if len(ip) == 0:
             ip = '0.0.0.0'
