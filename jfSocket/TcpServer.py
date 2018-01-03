@@ -25,7 +25,6 @@ class TcpServer(object):
         self.__clients = {}
         self.__name = '{}:{}'.format(ip, port)
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.__socket.bind(self.__host)
     
     #Public Properties
     @property
@@ -57,6 +56,13 @@ class TcpServer(object):
         引發錯誤:   
             `Exception` -- 回呼的錯誤函式
         """
+        try:
+            self.__socket.bind(self.__host)
+        except socket.error as ex:
+            if ex.errno == 48:
+                raise jskt.SocketError(1005)
+            else:
+                raise ex
         self.__socket.listen(5)
         self.__acceptHandler = td.Thread(target=self.__accept_client)
         self.__acceptHandler.setDaemon(True)
