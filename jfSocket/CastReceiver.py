@@ -7,7 +7,7 @@ import threading as td, socket
 class CastReceiver(object):
     """建立多播監聽器(Multicast)類別  
     傳入參數:  
-        `host` `int` -- 欲監聽的通訊埠號  
+        `host` `tuple(ip, port)` -- 欲監聽的通訊埠號  
         `evts` `dict{str:def,...}` -- 回呼事件定義，預設為 `None`
     """
     def __init__(self, host, evts=None):
@@ -61,8 +61,11 @@ class CastReceiver(object):
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         ip,_ = self.__host
+        if len(ip) == 0:
+            ip = '0.0.0.0'
+            self.__host = (ip, self.__host[1])
         hosts = []
-        if ip == '' or ip == '0.0.0.0':
+        if ip == '0.0.0.0':
             _,_,hosts = socket.gethostbyname_ex(socket.gethostname())
         else:
             hosts.append(ip)
@@ -85,7 +88,13 @@ class CastReceiver(object):
                 else:
                     # print(' -> OK')
                     pass
-        self.__socket.bind(self.__host)
+        try:
+            self.__socket.bind(self.__host)
+        except socket.error as ex:
+            if ex.errno == 48:
+                raise jskt.SocketError(1005)
+            else:
+                raise ex
         self.__receiveHandler = td.Thread(target=self.__receive_handler, args=(self.__socket, ))
         self.__receiveHandler.setDaemon(True)
         self.__receiveHandler.start()

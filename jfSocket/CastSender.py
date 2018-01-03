@@ -43,7 +43,7 @@ class CastSender(object):
             `jfSocket.SocketError` -- 遠端連線已斷開  
             `Exception` -- 回呼的錯誤函式
         """
-        if ord(socket.inet_aton(remote)[0]) not in range(224, 240):
+        if ord(socket.inet_aton(remote[0])[0]) not in range(224, 240):
             raise jskt.SocketError(1004)
         try:
             self.__socket.sendto(data, (remote[0], int(remote[1])))
