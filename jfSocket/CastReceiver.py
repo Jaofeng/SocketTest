@@ -58,9 +58,11 @@ class CastReceiver(object):
         """
         return self.__reuseAddr
     @reuseAddr.setter
-    def __reuseAddr(self, value):
+    def reuseAddr(self, value):
         """設定是否可重複使用 IP 位置  
         """
+        if not isinstance(value, bool):
+            raise TypeError()
         self.__reuseAddr = value
         if self.__socket:
             self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 if self.__reuseAddr else 0)
@@ -73,9 +75,11 @@ class CastReceiver(object):
         """
         return self.__reusePort
     @reusePort.setter
-    def __reusePort(self, value):
+    def reusePort(self, value):
         """設定是否可重複使用通訊埠位
         """
+        if not isinstance(value, bool):
+            raise TypeError()
         self.__reusePort = value
         if self.__socket:
             self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1 if self.__reusePort else 0)
