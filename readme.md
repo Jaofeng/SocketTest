@@ -95,7 +95,7 @@ svr = TcpServer.TcpServer(ip, port)
 ip, port = svr.host
 ```
 
-取得本端伺服器的傾聽通訊埠號。***唯讀***，回傳 `tuple(ip, port)` 型別
+取得本端伺服器的傾聽通訊埠號。***唯讀***，回傳 `tuple(ip, port)` 型別
 
 #### *TcpServer*.isAlive
 
@@ -106,7 +106,7 @@ else:
     print('TcpServer is stoped...')
 ```
 
-取得伺服器是否處於等待連線中。***唯讀***，回傳 `True` / `False`
+取得伺服器是否處於等待連線中。***唯讀***，回傳 `True` / `False`
 
 #### *TcpServer*.clients
 
