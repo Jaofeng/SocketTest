@@ -81,13 +81,13 @@ raise jfSocket.SocketError(errno, err=None):
 ### TcpServer
 
 ```python
-svr = TcpServer.TcpServer(ip, port)
+host=('127.0.0.1', 2000)
+svr = TcpServer.TcpServer(host)
 ```
 
 以 TCP 為連線基礎的 Socket Server
 
-* *ip* : `str` - 本端伺服器 IPv4 位址
-* *port* : `int` - 本端欲開啟傾聽的通訊埠號
+* *host* : `tuple(str, int)` - 本端伺服器 IPv4 位址與通訊埠號
 
 #### *TcpServer*.host
 
@@ -218,13 +218,13 @@ ip, port = clt.remote
 #### *TcpClient*.connect()
 
 ```python
-clt.connect(ip='127.0.0.1', port=12345)
+host = ('127.0.0.1', 12345)
+clt.connect(host)
 ```
 
 連線至遠端伺服器
 
-* *ip* : `str` - 遠端伺服器連線位址
-* *port* : `int` - 遠端伺服器的通訊埠號
+* *host* : ``tuple(ip, port)`` - 遠端伺服器連線位址與通訊埠號
 
 #### *TcpClient*.bind()
 
@@ -265,7 +265,7 @@ mcRec = CastReceiver.CastReceiver(host, evts=None)
 
 建立一個接收 Multicast 多播的連線類別
 
-* *host* : `int` - 本端伺服器 IPv4 位址
+* *host* : `tuple(ip, port)` - 本端監聽的 IPv4 位址與通訊埠號
 * *evts* : `dict{str:def, ...}` - 定義 CastReceiver 的回呼函式，預設為 `None`
 
 #### *CastReceiver*.recvBuffer
@@ -306,12 +306,13 @@ else:
 取得多播監聽器是否處於監聽中。***唯讀***，回傳 `True` / `False`
 
 #### *CastReceiver*.reuseAddr
+
 ```python
 mcRec.reuseAddr = True
 print('位址 "{}" 重複使用'.format('可以' if mcRec.reuseAddr else '不可'))
 ```
 
-取得或設定是否可重複綁定同一 IP 位置
+取得或設定是否可重複綁定同一 IP 位置，預設為 `True`
 
 #### *CastReceiver*.reusePort
 
@@ -320,7 +321,7 @@ mcRec.reusePort = True
 print('通訊埠 "{}" 重複使用'.format('可以' if mcRec.reusePort else '不可'))
 ```
 
-取得或設定是否可重複綁定同一通訊埠號
+取得或設定是否可重複綁定同一通訊埠號，預設為 `False`
 
 #### *CastReceiver*.start()
 

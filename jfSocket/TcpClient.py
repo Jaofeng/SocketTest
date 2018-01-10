@@ -56,16 +56,17 @@ class TcpClient(object):
         return self.__remote
 
     # Public Methods
-    def connect(self, ip, port):
+    def connect(self, host):
         """連線至遠端伺服器  
         傳入參數:  
-            `ip` `str` - 遠端伺服器連線位址  
-            `port` `int` - 遠端伺服器的通訊埠號  
+            `host` `tuple(ip, port)` - 遠端伺服器連線位址與通訊埠號  
         引發錯誤:  
             `jfSocket.SocketError` -- 連線已存在
             `socket.error' -- 連線時引發的錯誤
             `Exception` -- 回呼的錯誤函式
         """
+        assert isinstance(host, tuple) and isinstance(host[0], str) and isinstance(host[1], int),\
+            'host must be tuple(str, int) type!!'
         if self.isAlive:
             raise jskt.SocketError(1000)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

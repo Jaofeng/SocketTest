@@ -6,11 +6,12 @@ import threading as td, socket
 
 class TcpServer(object):
     """以 TCP 為連線基礎的 Socket Server  
-    ip : str - 提供連線的 IPv4 位址
-    port : int - 提供連接的通訊埠號
+    `host` : `tuple(ip, Port)` - 提供連線的 IPv4 位址與通訊埠號
     """
-    def __init__(self, ip, port):
-        self.__host = (ip, port)
+    def __init__(self, host):
+        assert isinstance(host, tuple) and isinstance(host[0], str) and isinstance(host[1], int),\
+            'host must be tuple(str, int) type!!'
+        self.__host = host
         self.__acceptHandler = None
         self.__events = {
             jskt.EventTypes.STARTED : None,
@@ -23,7 +24,7 @@ class TcpServer(object):
         }
         self.__stop = False
         self.__clients = {}
-        self.__name = '{}:{}'.format(ip, port)
+        self.__name = '{}:{}'.format(*(host))
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     #Public Properties

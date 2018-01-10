@@ -11,6 +11,8 @@ class CastReceiver(object):
         `evts` `dict{str:def,...}` -- 回呼事件定義，預設為 `None`
     """
     def __init__(self, host, evts=None):
+        assert isinstance(host, tuple) and isinstance(host[0], str) and isinstance(host[1], int),\
+            'host must be tuple(str, int) type!!'
         self.__socket = None
         self.__host = host
         self.__receiveHandler = None
