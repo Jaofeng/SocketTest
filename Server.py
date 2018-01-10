@@ -6,11 +6,11 @@ from jfSocket import EventTypes as ets, TcpServer, TcpClient
 
 _svr = None
 
-def runServers(ip, port):
-    print 'Creating Listen Server at {}:{}...'.format(ip, port)
+def runServers(host):
+    print 'Creating Listen Server at {}:{}...'.format(*(host))
     global _svr
     try:
-        _svr = TcpServer.TcpServer(ip=ip, port=port)
+        _svr = TcpServer.TcpServer(host)
     except socket.error as ex:
         if ex.errno == 48:
             print('Address already in use, please try again...')
@@ -18,7 +18,7 @@ def runServers(ip, port):
             print(ex)
         return False
     try:
-        _svr.name = '{}:{}'.format(ip, port)
+        _svr.name = '{}:{}'.format(*(host))
         _svr.bind(key=ets.STARTED, evt=onServerStarted)
         _svr.bind(key=ets.STOPED, evt=onServerStoped)
         _svr.bind(key=ets.CONNECTED, evt=onClientConnected)
@@ -49,11 +49,15 @@ def onClientDisconnect(*args):
     print(u'  -> Client \u001b[32m{}:{}\u001b[0m disconnect...'.format(addr[0], addr[1]))
 def onReceived(*args):
     addr = args[0].remote
-    print(u'  -> [{}] Received data from \u001b[32m{}:{}\u001b[0m\n     : \u001b[35m{}\u001b[0m'.format(time.strftime("%H:%M:%S"), addr[0], addr[1], args[1].encode('hex')))
+    print(u'  -> [{}] Received data from \u001b[32m{}:{}\u001b[0m\n     : \u001b[35m{}\u001b[0m'.format(
+        time.strftime("%H:%M:%S"), addr[0], addr[1], args[1].encode('hex')))
+    sys.stdout.flush()
     args[0].send(args[1])
 def onSended(*args):
     addr = args[0].remote
-    print(u'  -> [{}] Send data to \u001b[32m{}:{}\u001b[0m\n     : \u001b[34m{}\u001b[0m'.format(time.strftime("%H:%M:%S"), addr[0], addr[1], args[1].encode('hex')))
+    print(u'  -> [{}] Send data to \u001b[32m{}:{}\u001b[0m\n     : \u001b[34m{}\u001b[0m'.format(
+        time.strftime("%H:%M:%S"), addr[0], addr[1], args[1].encode('hex')))
+    sys.stdout.flush()
 def onSendFail(*args):
     addr = args[0].remote
     print(u'  -> [{}] Send data to \u001b[32m{}:{}\u001b[0m fail\n     : \u001b[31m{}\u001b[0m'.format(time.strftime("%H:%M:%S"), addr[0], addr[1], args[1].encode('hex')))
@@ -73,7 +77,7 @@ def waitStdin():
                 elif cmds[0] == 'start':
                     if _svr is not None and _svr.isAlive:
                         print('Server is listening...')
-                    elif not runServers(cmds[1], int(cmds[2])):
+                    elif not runServers((cmds[1], int(cmds[2]))):
                         break
                 elif cmds[0] == 'stop':
                     if _svr is not None and _svr.isAlive:
@@ -133,6 +137,9 @@ def sendData(*args):
     except KeyError:
         print('Connection({}) not found'.format(args[0]))
 def showClients():
+    if len(_svr.clients) == 0:
+        print('No client connected...')
+        return
     try:
         for x in _svr.clients:
             print('{}:{}'.format(x[0], x[1]))

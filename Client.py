@@ -12,7 +12,7 @@ _counter = {}
 _svrPort = None
 
 def connectToServer(*args):
-    print('Connect to Server {}:{}'.format(args[0], args[1]))
+    print('Connect to Server {}:{}'.format(*(args[0])))
     try:
         clk = TcpClient.TcpClient()
         clk.bind(key=ets.CONNECTED, evt=onConnected)
@@ -20,7 +20,7 @@ def connectToServer(*args):
         clk.bind(key=ets.RECEIVED, evt=onReceived)
         clk.bind(key=ets.SENDED, evt=onSended)
         clk.bind(key=ets.SENDFAIL, evt=onSendFail)
-        clk.connect(ip=args[0], port=args[1])
+        clk.connect(args[0])
     except:
         print(traceback.format_exc())
     else:
@@ -47,17 +47,17 @@ def onDisconnect(*args):
     del _clients[args[1][1]]
 def onReceived(*args):
     remote = args[0].remote
-    hostStr = ':'.join([str(x) for x in (args[0].host)])
+    hostStr = ':'.join([str(x) for x in args[0].host])
     if _result.has_key(hostStr):
         tmr = time.time() - _result[hostStr]
         _timer[hostStr] += tmr
         _counter[hostStr] += 1
         _success[hostStr] += 1
-        # print(u'  -> [{}] Received data from \u001b[32m{}:{}\u001b[0m - {:.3f}ms\n     : \u001b[35m{}\u001b[0m'.format(
+        # print(u'  -> [{}] Received random data from \u001b[32m{}:{}\u001b[0m - {:.3f}ms\n     : \u001b[35m{}\u001b[0m'.format(
         #     time.strftime("%H:%M:%S"), remote[0], remote[1], tmr * 1000, args[1].encode('hex')))
         del _result[hostStr]
     else:
-        print(u'\u001b[40;32m  -> [{}] Received Unknow data from \u001b[32m{}:{}\u001b[0m\n     : \u001b[35m{}\u001b[0m'.format(time.strftime("%H:%M:%S"), remote[0], remote[1], args[1].encode('hex')))
+        print(u'\u001b[40;32m  -> [{}] Received data from \u001b[32m{}:{}\u001b[0m\n     : \u001b[35m{}\u001b[0m'.format(time.strftime("%H:%M:%S"), remote[0], remote[1], args[1].encode('hex')))
 def onSended(*args):
     addr = args[0].remote
     # print(u'  -> [{}] Send data to \u001b[32m{}:{}\u001b[0m\n     : \u001b[34m{}\u001b[0m'.format(time.strftime("%H:%M:%S"), addr[0], addr[1], args[1].encode('hex')))
@@ -95,7 +95,7 @@ def waitStdin():
                     else:
                         cnt = int(cmds[1])
                     for _ in range(0, cnt):
-                        connectToServer(*(_svrPort))
+                        connectToServer(_svrPort)
                         time.sleep(0.1)
                 elif cmds[0] == 'close':
                     try:
@@ -104,7 +104,7 @@ def waitStdin():
                     except:
                         print(traceback.format_exc())
                 elif cmds[0] == 'set':
-                    _svrPort = [cmds[1], int(cmds[2])]
+                    _svrPort = (cmds[1], int(cmds[2]))
                 elif cmds[0] == 'test':
                     if _svrPort is None:
                         print('No set server ip and port...')
@@ -133,7 +133,7 @@ def sendData(*args):
         print('Connection({}) not found'.format(args[0]))
 def pressureTest(connections, times):
     for _ in range(0, connections):
-        connectToServer(*(_svrPort))
+        connectToServer(_svrPort)
     while len(_clients) != connections:
         time.sleep(0.1)
     print('Connection created!!\n')
@@ -143,20 +143,25 @@ def pressureTest(connections, times):
     while done < connections:
         sys.stdout.write(u'\u001b[1000D') # Move left
         sys.stdout.write(u'\u001b[{}A'.format(connections)) # Move up
+        sys.stdout.flush()
         done = 0
         for x in _counter:
             progress = int(float(_counter[x]) / _times * 100)
             width = progress / 2
             print(u'\u001b[32m{}\u001b[0m [\u001b[34m{}\u001b[0m{}] {:3d}%'.format(x, ''.ljust(width, '#'), ''.ljust(50 - width, ' '), progress))
+            sys.stdout.flush()
             if _counter[x] == _times:
                 done += 1
     sys.stdout.write(u'\u001b[1000D') # Move left
     sys.stdout.write(u'\u001b[{}A'.format(connections)) # Move up
+    sys.stdout.flush()
     for x in _counter:
         print(u'\u001b[32m{}\u001b[0m [\u001b[34m{}\u001b[0m] {:3d}%'.format(x, ''.ljust(width, '#'), progress))
+        sys.stdout.flush()
     print('All done...')
     for x in _timer:
         print(u'[**] \u001b[32m{}\u001b[0m Finish!! Use:\u001b[32m{:.3f}ms\u001b[0m, Agv:\u001b[35m{:.3f}ms\u001b[0m, Success:\u001b[36m{:-3.1f}\u001b[0m%'.format(x, _timer[x] * 1000, _timer[x]/times * 1000, float(_success[x])/times * 100))
+        sys.stdout.flush()
         _clients[int(x.split(':')[1])].close()
 
 def randomStr(cnt):
@@ -174,7 +179,7 @@ def randomThread(client, times):
         client.send(rs)
         now = time.time()
         while _result.has_key(addrStr) and time.time() - now <= 2:
-            time.sleep(0.05)
+            time.sleep(0.002)
         if _result.has_key(addrStr):
             _counter[addrStr] += 1
             # print(u'\u001b[31m[***]\u001b[0m \u001b[32m{}\u001b[0m \u001b[31mmiss loopback!\u001b[0m'.format(addrStr))
