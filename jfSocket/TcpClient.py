@@ -71,7 +71,7 @@ class TcpClient(object):
             raise jskt.SocketError(1000)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.socket.connect((ip, int(port)))
+            self.socket.connect(host)
         except socket.error as err:
             raise err
         else:
