@@ -265,7 +265,7 @@ mcRec = CastReceiver.CastReceiver(host, evts=None)
 
 建立一個接收 Multicast 多播的連線類別
 
-* *host* : `tuple(ip, port)` - 本端監聽的 IPv4 位址與通訊埠號
+* *host* : `tuple(ip, port)` - 本端監聽的 IPv4 位址與通訊埠號
 * *evts* : `dict{str:def, ...}` - 定義 CastReceiver 的回呼函式，預設為 `None`
 
 #### *CastReceiver*.recvBuffer
