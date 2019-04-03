@@ -1,4 +1,5 @@
-# -*- coding: UTF-8 -*-
+#! /usr/bin/env python3
+# # -*- coding: UTF-8 -*-
 
 import os, sys, time, logging, traceback, datetime
 import jfSocket as jskt
@@ -20,6 +21,7 @@ class CastSender(object):
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
         self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
+
     def bind(self, key=None, evt=None):
         """綁定回呼(callback)函式  
         傳入參數:  
@@ -34,6 +36,7 @@ class CastSender(object):
         if evt is not None and not callable(evt):
             raise TypeError('evt:\'{}\' is not a function!'.format(evt))
         self.__events[key] = evt
+        
     def send(self, remote, data):
         """發送資料至多播位址  
         傳入參數:  
@@ -43,7 +46,10 @@ class CastSender(object):
             `jfSocket.SocketError` -- 遠端連線已斷開  
             `Exception` -- 回呼的錯誤函式
         """
-        if ord(socket.inet_aton(remote[0])[0]) not in range(224, 240):
+        v = socket.inet_aton(remote[0])[0]
+        if isinstance(v, str):
+            v = ord(v)
+        if v not in range(224, 240):
             raise jskt.SocketError(1004)
         try:
             self.__socket.sendto(data, (remote[0], int(remote[1])))

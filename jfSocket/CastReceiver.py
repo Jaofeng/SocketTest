@@ -1,4 +1,5 @@
-# -*- coding: UTF-8 -*-
+#! /usr/bin/env python3
+# # -*- coding: UTF-8 -*-
 
 import sys, time, traceback, errno
 import jfSocket as jskt
@@ -7,14 +8,12 @@ import threading as td, socket
 class CastReceiver(object):
     """建立多播監聽器(Multicast)類別  
     傳入參數:  
-        `host` `tuple(ip, port)` -- 欲監聽的通訊埠號  
+        `port` `int` -- 欲監聽的通訊埠號  
         `evts` `dict{str:def,...}` -- 回呼事件定義，預設為 `None`
     """
-    def __init__(self, host, evts=None):
-        assert isinstance(host, tuple) and isinstance(host[0], str) and isinstance(host[1], int),\
-            'host must be tuple(str, int) type!!'
+    def __init__(self, port, evts=None):
         self.__socket = None
-        self.__host = host
+        self.__host = ('', port)
         self.__receiveHandler = None
         self.__stop = False
         self.__groups = []
@@ -142,6 +141,7 @@ class CastReceiver(object):
                 self.__events[jskt.EventTypes.STARTED](self)
             except Exception as ex:
                 raise
+ 
     def stop(self):
         """停止監聽
         """
@@ -152,6 +152,7 @@ class CastReceiver(object):
         if self.__receiveHandler is not None:
             self.__receiveHandler.join(2.5)
         self.__receiveHandler = None
+    
     def joinGroup(self, *ips):
         """加入監聽IP  
         傳入參數:  
@@ -161,7 +162,10 @@ class CastReceiver(object):
             `socket.error` -- 無法設定監聽 IP 
         """
         for x in ips:
-            if ord(socket.inet_aton(x)[0]) not in range(224, 240):
+            v = socket.inet_aton(x)[0]
+            if isinstance(v, str):
+                v = ord(v)
+            if v not in range(224, 240):
                 raise jskt.SocketError(1004)
             if x in self.__groups:
                 raise jskt.SocketError(1002)
@@ -190,6 +194,7 @@ class CastReceiver(object):
                 else:
                     #print(' -> OK')
                     pass
+    
     def dropGroup(self, *ips):
         """移除監聽清單中的 IP  
         `注意`：如在監聽中移除IP，需重新啟動
@@ -199,11 +204,15 @@ class CastReceiver(object):
             `jskt.SocketError` -- 欲移除的 IP 錯誤或該 IP 不存在
         """
         for x in ips:
-            if ord(socket.inet_aton(x)[0]) not in range(224, 240):
+            v = socket.inet_aton(x)[0]
+            if isinstance(v, str):
+                v = ord(v)
+            if v not in range(224, 240):
                 raise jskt.SocketError(1004)
             if x not in self.__groups:
                 raise jskt.SocketError(1003)
             self.__groups.remove(x)
+    
     def bind(self, key=None, evt=None):
         """綁定回呼(callback)函式  
         傳入參數:  
@@ -241,17 +250,18 @@ class CastReceiver(object):
                 break
             else:
                 # Received Data
-                if len(data) == 0:
-                    # 空資料，認定遠端已斷線
-                    break
-                elif len([x for x in data if ord(x) == 0x04]) == len(data):
-                    # 收到 EOT(End Of Transmission, 傳輸結束)，則表示已與遠端中斷連線
-                    break
+                # if len(data) == 0:
+                #     # 空資料，認定遠端已斷線
+                #     break
+                # elif len([x for x in data if ord(x) == 0x04]) == len(data):
+                #     # 收到 EOT(End Of Transmission, 傳輸結束)，則表示已與遠端中斷連線
+                #     break
                 if self.__events[jskt.EventTypes.RECEIVED] is not None:
                     try:
                         self.__events[jskt.EventTypes.RECEIVED](self, data, addr)
                     except Exception as ex:
                         raise ex
+                    data = ''
         if self.__events[jskt.EventTypes.STOPED] is not None:
             try:
                 self.__events[jskt.EventTypes.STOPED](self)
