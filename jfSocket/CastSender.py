@@ -2,8 +2,8 @@
 # # -*- coding: UTF-8 -*-
 
 import os, sys, time, logging, traceback, datetime
-import jfSocket as jskt
 import threading as td, socket
+from jfSocket.Common import *
 
 class CastSender(object):
     """建立一個發送 Multicast 多播的連線類別
@@ -12,15 +12,16 @@ class CastSender(object):
     """
     def __init__(self, evts=None):
         self.__events = {
-            jskt.EventTypes.SENDED : None,
-            jskt.EventTypes.SENDFAIL : None
+            EventTypes.SENDED : None,
+            EventTypes.SENDFAIL : None
         }
         if evts:
             for x in evts:
                 self.__events[x] = evts[x]
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
-        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
+        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
+        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.INADDR_ANY)	
 
     def bind(self, key=None, evt=None):
         """綁定回呼(callback)函式  
@@ -50,19 +51,21 @@ class CastSender(object):
         if isinstance(v, str):
             v = ord(v)
         if v not in range(224, 240):
-            raise jskt.SocketError(1004)
+            raise SocketError(1004)
+        data = data.encode('utf-8')
+        ba = bytearray(data)
         try:
-            self.__socket.sendto(data, (remote[0], int(remote[1])))
+            self.__socket.sendto(ba, (remote[0], int(remote[1])))
         except Exception as e:
-            if self.__events[jskt.EventTypes.SENDFAIL] is not None:
+            if self.__events[EventTypes.SENDFAIL] is not None:
                 try:
-                    self.__events[jskt.EventTypes.SENDFAIL](self, data, remote, e)
+                    self.__events[EventTypes.SENDFAIL](self, ba, remote, e)
                 except Exception as ex:
                     raise ex
         else:
-            if self.__events[jskt.EventTypes.SENDED] is not None:
+            if self.__events[EventTypes.SENDED] is not None:
                 try:
-                    self.__events[jskt.EventTypes.SENDED](self, data, remote)
+                    self.__events[EventTypes.SENDED](self, ba, remote)
                 except Exception as ex:
                     raise ex
         

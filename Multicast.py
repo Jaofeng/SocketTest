@@ -2,13 +2,15 @@
 # -*- coding: UTF-8 -*-
 
 import os, sys, time, traceback, datetime, socket
-from jfSocket import EventTypes as ets, CastReceiver as jcr, CastSender as jcs
+from jfSocket import CastReceiver as jcr, CastSender as jcs
+from jfSocket.Common import *
+from jfSocket.Common import EventTypes as ets
 
 _rcv = None
 _snd = None
 
-def toHex(arr):
-    return ''.join(format(x, '02x') for x in arr)
+def toHexStr(arr):
+    return ' '.join('{:02X}'.format(x) for x in arr)
 
 def onStarted(*args):
     if isinstance(args[0], jcr.CastReceiver):
@@ -25,23 +27,44 @@ def onStoped(*args):
         print('  -> Multicast Sender Stoped...')
 
 def onReceived(*args):
-    print('Received Data from {}:{}\n : {}'.format(args[2][0], args[2][1], args[1]))
+    ipL, portL = args[2]
+    ipR, portR = args[3]
+    dStr = args[1]
+    if isinstance(dStr, bytearray):
+        dStr = toHexStr(dStr)
+    print('Received Data from {}:{} -> {}:{}\n : {}'.format(ipR, portR, ipL, portL, dStr))
 
 def onSended(*args):
-    print('Data has send to {}:{}\n :  {}'.format(args[2][0], args[2][1], args[1]))
+    ip,port = args[2]
+    dStr = args[1]
+    if isinstance(dStr, bytearray):
+        dStr = toHexStr(dStr)
+    print('Data has send to {}:{}\n :  {}'.format(ip, port, dStr))
 
 def onSendfail(*args):
-    print('Send data to {}:{} fail\n : {}\n{}'.format(args[2][0], args[2][1], args[1], str(args[3])))
+    ip,port = args[2]
+    dStr = args[1]
+    if isinstance(dStr, bytearray):
+        dStr = toHexStr(dStr)
+    print('Send data to {}:{} fail\n : {}\n{}'.format(ip, port, dStr, arg[3]))
     print(traceback.format_exc())
 
 def createReceiver(*args):
     # args : Local IP, Listen Port, Group Ip1, Group Ip2, ...
     global _rcv
-    _rcv = jcr.CastReceiver(int(args[0]))
+    idx = 0
+    if args[0].isdigit():
+        _rcv = jcr.CastReceiver(int(args[0]))
+        idx = 1
+    elif isinstance(args[0], str) and len(args) >= 2 and args[1].isdigit():
+        _rcv = jcr.CastReceiver((args[0], int(args[1])))
+        idx = 2
+    else:
+        raise 'Command Error'
     _rcv.bind(key=ets.STARTED, evt=onStarted)
     _rcv.bind(key=ets.STOPED, evt=onStoped)
     _rcv.bind(key=ets.RECEIVED, evt=onReceived)
-    for x in args[1:]:
+    for x in args[idx:]:
         _rcv.joinGroup(x)
     _rcv.start()
 
