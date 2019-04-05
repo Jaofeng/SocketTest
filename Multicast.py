@@ -89,7 +89,13 @@ def sendData(*args):
     if len(args) < 3:
         print('Missing some arg')
     addr = (args[0], int(args[1]))
-    _snd.send(addr, args[2])
+    if len(args) >= 3:
+        data = ''.join(args[2:])
+    if data[0] == '-' and data[1] == 'x':
+        data = bytearray.fromhex(data[2:])
+    else:
+        data = bytearray(data.encode('utf-8'))
+    _snd.send(addr, data)
 
 def joinGroup(*args):
     _rcv.joinGroup(*(args))

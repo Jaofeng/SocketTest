@@ -52,8 +52,12 @@ class CastSender(object):
             v = ord(v)
         if v not in range(224, 240):
             raise SocketError(1004)
-        data = data.encode('utf-8')
-        ba = bytearray(data)
+        ba = None
+        if isinstance(data, str):
+            data = data.encode('utf-8')
+            ba = bytearray(data)
+        elif isinstance(data, bytearray):
+            ba = data[:]
         try:
             self.__socket.sendto(ba, (remote[0], int(remote[1])))
         except Exception as e:
