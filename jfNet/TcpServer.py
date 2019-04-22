@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 import os, sys, time, logging, traceback, datetime
-import jfSocket as jskt
+from jfNet import *
 import threading as td, socket
 
 class TcpServer(object):
@@ -15,13 +15,13 @@ class TcpServer(object):
         self.__host = host
         self.__acceptHandler = None
         self.__events = {
-            jskt.EventTypes.STARTED : None,
-            jskt.EventTypes.STOPED : None,
-            jskt.EventTypes.CONNECTED : None,
-            jskt.EventTypes.DISCONNECT : None,
-            jskt.EventTypes.RECEIVED : None,
-            jskt.EventTypes.SENDED : None,
-            jskt.EventTypes.SENDFAIL : None
+            EventTypes.STARTED : None,
+            EventTypes.STOPED : None,
+            EventTypes.CONNECTED : None,
+            EventTypes.DISCONNECT : None,
+            EventTypes.RECEIVED : None,
+            EventTypes.SENDED : None,
+            EventTypes.SENDFAIL : None
         }
         self.__stop = False
         self.__clients = {}
@@ -72,9 +72,9 @@ class TcpServer(object):
         now = time.time()
         while not self.__acceptHandler.isAlive and (time.time() - now) <= 1:
             time.sleep(0.1)
-        if self.isAlive and self.__events[jskt.EventTypes.STARTED] is not None:
+        if self.isAlive and self.__events[EventTypes.STARTED] is not None:
             try:
-                self.__events[jskt.EventTypes.STARTED](self)
+                self.__events[EventTypes.STARTED](self)
             except Exception as ex:
                 raise ex
     def stop(self):
@@ -153,9 +153,9 @@ class TcpServer(object):
         client = args[0]
         if self.__clients[args[2]]:
             del self.__clients[args[2]]
-        if self.__events[jskt.EventTypes.DISCONNECT] is not None:
+        if self.__events[EventTypes.DISCONNECT] is not None:
             try:
-                self.__events[jskt.EventTypes.DISCONNECT](*(args))
+                self.__events[EventTypes.DISCONNECT](*(args))
             except Exception as ex:
                 print(traceback.format_exc())
                 #raise ex
@@ -180,19 +180,19 @@ class TcpServer(object):
                     pass
                 break
             clk = jskt.TcpClient.TcpClient(client)
-            clk.bind(key=jskt.EventTypes.RECEIVED, evt=self.__events[jskt.EventTypes.RECEIVED])
-            clk.bind(key=jskt.EventTypes.DISCONNECT, evt=self.__onClientDisconnect)
-            clk.bind(key=jskt.EventTypes.SENDED, evt=self.__events[jskt.EventTypes.SENDED])
-            clk.bind(key=jskt.EventTypes.SENDFAIL, evt=self.__events[jskt.EventTypes.SENDFAIL])
+            clk.bind(key=EventTypes.RECEIVED, evt=self.__events[EventTypes.RECEIVED])
+            clk.bind(key=EventTypes.DISCONNECT, evt=self.__onClientDisconnect)
+            clk.bind(key=EventTypes.SENDED, evt=self.__events[EventTypes.SENDED])
+            clk.bind(key=EventTypes.SENDFAIL, evt=self.__events[EventTypes.SENDFAIL])
             self.__clients[addr] = clk
-            if self.__events[jskt.EventTypes.CONNECTED] is not None:
+            if self.__events[EventTypes.CONNECTED] is not None:
                 try:
-                    self.__events[jskt.EventTypes.CONNECTED](clk, self.__host, addr)
+                    self.__events[EventTypes.CONNECTED](clk, self.__host, addr)
                 except Exception as ex:
                     raise ex
-        if self.__events[jskt.EventTypes.STOPED] is not None:
+        if self.__events[EventTypes.STOPED] is not None:
             try:
-                self.__events[jskt.EventTypes.STOPED](self)
+                self.__events[EventTypes.STOPED](self)
             except Exception as ex:
                 raise ex
             

@@ -3,7 +3,7 @@
 
 import os, sys, time, logging, traceback, datetime
 import threading as td, socket
-from jfSocket.Common import *
+from jfNet import *
 
 class CastSender(object):
     """建立一個發送 Multicast 多播的連線類別

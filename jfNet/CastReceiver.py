@@ -3,7 +3,7 @@
 
 import sys, time, traceback, errno, struct
 import threading as td, socket
-from jfSocket.Common import *
+from jfNet import *
 
 
 class CastReceiver(object):
@@ -13,10 +13,9 @@ class CastReceiver(object):
         `evts` `dict{str:def,...}` -- 回呼事件定義，預設為 `None`
     '''
 
+    __socket = None
+
     def __init__(self, host, evts=None):
-        self.__socket = socket.socket(
-            socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP
-        )
         if isinstance(host, int):
             self.__host = ('', host)
         elif isinstance(host, tuple):
@@ -33,7 +32,7 @@ class CastReceiver(object):
             for x in evts:
                 self.__events[x] = evts[x]
         self.__reuseAddr = True
-        self.__reusePort = False
+        self.__reusePort = True
         self.recvBuffer = 256
 
     # Public Properties
@@ -109,6 +108,9 @@ class CastReceiver(object):
             `socket.error` -- 監聽 IP 設定錯誤
             `Exception` -- 回呼的錯誤函式
         '''
+        self.__socket = socket.socket(
+            socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP
+        )
         self.__socket.setsockopt(
             socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 if self.__reuseAddr else 0
         )
@@ -117,6 +119,8 @@ class CastReceiver(object):
         )
         self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
         self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
+        for x in self.__groups:
+            self.__doAddMembership(x)
         try:
             self.__socket.bind(self.__host)
         except socket.error as ex:
@@ -142,7 +146,9 @@ class CastReceiver(object):
         '''停止監聽
         '''
         self.__stop = True
-        if self.__socket is not None:
+        if self.__socket:
+            for x in self.__groups:
+                self.__doDropMembership(x)
             self.__socket.close()
         self.__socket = None
         if self.__receiveHandler is not None:
@@ -166,22 +172,8 @@ class CastReceiver(object):
             if x in self.__groups:
                 raise SocketError(1002)
             self.__groups.append(x)
-            for g in self.__groups:
-                mreq = struct.pack('4sL', socket.inet_aton(g), socket.INADDR_ANY)
-                try:
-                    self.__socket.setsockopt(
-                        socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq
-                    )
-                except socket.error as err:
-                    if err.errno == errno.EADDRINUSE:
-                        # print(' -> In Use')
-                        pass
-                    else:
-                        # print(' -> error({})'.format(err.errno))
-                        raise
-                else:
-                    # print(' -> OK')
-                    pass
+            if self.__socket:
+                self.__doAddMembership(x)
 
     def dropGroup(self, *ips):
         '''移除監聽清單中的 IP  
@@ -200,7 +192,9 @@ class CastReceiver(object):
             if x not in self.__groups:
                 raise SocketError(1003)
             self.__groups.remove(x)
-
+            if self.__socket:
+                self.__doDropMembership(x)
+                    
     def bind(self, key=None, evt=None):
         '''綁定回呼(callback)函式  
         傳入參數:  
@@ -231,6 +225,8 @@ class CastReceiver(object):
                     break
                 else:
                     continue
+            except OSError:
+                break
             except Exception as ex:
                 # 先攔截並顯示，待未來確定可能會發生的錯誤再進行處理
                 print(traceback.format_exc())
@@ -259,3 +255,36 @@ class CastReceiver(object):
             except Exception as ex:
                 raise ex
 
+    def __doAddMembership(self, ip):
+        try:
+            mreq = struct.pack('4sL', socket.inet_aton(ip), socket.INADDR_ANY)
+            self.__socket.setsockopt(
+                socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq
+            )
+        except socket.error as err:
+            if err.errno == errno.EADDRINUSE:
+                # print(' -> In Use')
+                pass
+            else:
+                # print(' -> error({})'.format(err.errno))
+                raise
+        else:
+            # print(' -> OK')
+            pass
+
+    def __doDropMembership(self, ip):
+        try:
+            mreq = struct.pack('4sL', socket.inet_aton(ip), socket.INADDR_ANY)
+            self.__socket.setsockopt(
+                socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq
+            )
+        except socket.error as err:
+            if err.errno == errno.EADDRNOTAVAIL:
+                # print(' -> Not In Use')
+                pass
+            else:
+                # print(' -> error({})'.format(err.errno))
+                raise
+        else:
+            # print(' -> OK')
+            pass

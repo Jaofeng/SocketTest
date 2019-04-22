@@ -2,7 +2,7 @@
 # # -*- coding: UTF-8 -*-
 
 import os, sys, time, logging, traceback, datetime
-import jfSocket as jskt
+from jfNet import *
 import threading as td, socket
 
 class TcpClient(object):
@@ -13,11 +13,11 @@ class TcpClient(object):
     """
     def __init__(self, socket=None, evts=None):
         self.__events = {
-            jskt.EventTypes.CONNECTED : None,
-            jskt.EventTypes.DISCONNECT : None,
-            jskt.EventTypes.RECEIVED : None,
-            jskt.EventTypes.SENDED : None,
-            jskt.EventTypes.SENDFAIL : None
+            EventTypes.CONNECTED : None,
+            EventTypes.DISCONNECT : None,
+            EventTypes.RECEIVED : None,
+            EventTypes.SENDED : None,
+            EventTypes.SENDFAIL : None
         }
         if evts:
             for x in evts:
@@ -77,9 +77,9 @@ class TcpClient(object):
             raise err
         else:
             self.__assign(self.socket)
-            if self.__events[jskt.EventTypes.CONNECTED] is not None:
+            if self.__events[EventTypes.CONNECTED] is not None:
                 try:
-                    self.__events[jskt.EventTypes.CONNECTED](self, self.host, self.remote)
+                    self.__events[EventTypes.CONNECTED](self, self.host, self.remote)
                 except Exception as ex:
                     raise ex              
     def bind(self, key=None, evt=None):
@@ -118,15 +118,15 @@ class TcpClient(object):
         try:
             self.socket.send(data)
         except Exception as e:
-            if self.__events[jskt.EventTypes.SENDFAIL] is not None:
+            if self.__events[EventTypes.SENDFAIL] is not None:
                 try:
-                    self.__events[jskt.EventTypes.SENDFAIL](self, data, e)
+                    self.__events[EventTypes.SENDFAIL](self, data, e)
                 except Exception as ex:
                     raise ex
         else:
-            if self.__events[jskt.EventTypes.SENDED] is not None:
+            if self.__events[EventTypes.SENDED] is not None:
                 try:
-                    self.__events[jskt.EventTypes.SENDED](self, data)
+                    self.__events[EventTypes.SENDED](self, data)
                 except Exception as ex:
                     raise ex
         
@@ -165,14 +165,14 @@ class TcpClient(object):
                 elif len([x for x in data if ord(x) == 0x04]) == len(data):
                     # 收到 EOT(End Of Transmission, 傳輸結束)，則表示已與遠端中斷連線
                     break
-                if self.__events[jskt.EventTypes.RECEIVED] is not None:
+                if self.__events[EventTypes.RECEIVED] is not None:
                     try:
-                        self.__events[jskt.EventTypes.RECEIVED](self, data)
+                        self.__events[EventTypes.RECEIVED](self, data)
                     except Exception as ex:
                         raise
-        if self.__events[jskt.EventTypes.DISCONNECT] is not None:
+        if self.__events[EventTypes.DISCONNECT] is not None:
             try:
-                self.__events[jskt.EventTypes.DISCONNECT](self, self.host, self.remote)
+                self.__events[EventTypes.DISCONNECT](self, self.host, self.remote)
             except Exception as ex:
                 raise
 

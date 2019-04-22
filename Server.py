@@ -2,7 +2,7 @@
 
 import os, sys, time, traceback, datetime
 import socket
-from jfSocket import EventTypes as ets, TcpServer, TcpClient
+from jfNet import EventTypes as ets, TcpServer, TcpClient
 
 _svr = None
 

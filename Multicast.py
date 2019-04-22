@@ -2,9 +2,8 @@
 # -*- coding: UTF-8 -*-
 
 import os, sys, time, traceback, datetime, socket
-from jfSocket import CastReceiver as jcr, CastSender as jcs
-from jfSocket.Common import *
-from jfSocket.Common import EventTypes as ets
+from jfNet import CastReceiver as jcr, CastSender as jcs
+from jfNet import *
 
 _rcv = None
 _snd = None
@@ -50,7 +49,7 @@ def onSendfail(*args):
     print(traceback.format_exc())
 
 def createReceiver(*args):
-    # args : Local IP, Listen Port, Group Ip1, Group Ip2, ...
+    # args : Listen Port, Group Ip1, Group Ip2, ...
     global _rcv
     idx = 0
     if args[0].isdigit():

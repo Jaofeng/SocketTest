@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 import os, sys, traceback, time, random, threading
-from jfSocket import EventTypes as ets, TcpClient
+from jfNet import EventTypes as ets, TcpClient
 
 _clients = {}
 _result = {}

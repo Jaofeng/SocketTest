@@ -4,39 +4,39 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-CONNECTED	../jfSocket/__init__.py	/^    CONNECTED = 'onConnected'$/;"	kind:variable	line:14
-CastReceiver	../jfSocket/CastReceiver.py	/^class CastReceiver(object):$/;"	kind:class	line:7
-CastReceiver	../multicast.py	/^from jfSocket import EventTypes as ets, CastReceiver, CastSender$/;"	kind:namespace	line:4
-CastReceiver.py	../jfSocket/CastReceiver.py	1;"	kind:file	line:1
-CastSender	../multicast.py	/^from jfSocket import EventTypes as ets, CastReceiver, CastSender$/;"	kind:namespace	line:4
-CastSender.py	../jfSocket/CastSender.py	1;"	kind:file	line:1
+CONNECTED	../jfNet/__init__.py	/^    CONNECTED = 'onConnected'$/;"	kind:variable	line:14
+CastReceiver	../jfNet/CastReceiver.py	/^class CastReceiver(object):$/;"	kind:class	line:7
+CastReceiver	../multicast.py	/^from jfNet import EventTypes as ets, CastReceiver, CastSender$/;"	kind:namespace	line:4
+CastReceiver.py	../jfNet/CastReceiver.py	1;"	kind:file	line:1
+CastSender	../multicast.py	/^from jfNet import EventTypes as ets, CastReceiver, CastSender$/;"	kind:namespace	line:4
+CastSender.py	../jfNet/CastSender.py	1;"	kind:file	line:1
 Client.py	../Client.py	1;"	kind:file	line:1
-DISCONNECT	../jfSocket/__init__.py	/^    DISCONNECT = 'onDisconnect'$/;"	kind:variable	line:15
-Enum	../jfSocket/__init__.py	/^from enum import Enum, unique$/;"	kind:namespace	line:8
-EventTypes	../jfSocket/__init__.py	/^class EventTypes(Enum):$/;"	kind:class	line:10
-RECEIVED	../jfSocket/__init__.py	/^    RECEIVED = 'onReceived'$/;"	kind:variable	line:16
-SENDED	../jfSocket/__init__.py	/^    SENDED = 'onSended'$/;"	kind:variable	line:17
-SENDFAIL	../jfSocket/__init__.py	/^    SENDFAIL = 'onSendFail'$/;"	kind:variable	line:18
-STARTED	../jfSocket/__init__.py	/^    STARTED = 'onStarted'$/;"	kind:variable	line:19
-STOPED	../jfSocket/__init__.py	/^    STOPED = 'onStoped'$/;"	kind:variable	line:20
+DISCONNECT	../jfNet/__init__.py	/^    DISCONNECT = 'onDisconnect'$/;"	kind:variable	line:15
+Enum	../jfNet/__init__.py	/^from enum import Enum, unique$/;"	kind:namespace	line:8
+EventTypes	../jfNet/__init__.py	/^class EventTypes(Enum):$/;"	kind:class	line:10
+RECEIVED	../jfNet/__init__.py	/^    RECEIVED = 'onReceived'$/;"	kind:variable	line:16
+SENDED	../jfNet/__init__.py	/^    SENDED = 'onSended'$/;"	kind:variable	line:17
+SENDFAIL	../jfNet/__init__.py	/^    SENDFAIL = 'onSendFail'$/;"	kind:variable	line:18
+STARTED	../jfNet/__init__.py	/^    STARTED = 'onStarted'$/;"	kind:variable	line:19
+STOPED	../jfNet/__init__.py	/^    STOPED = 'onStoped'$/;"	kind:variable	line:20
 Server.py	../Server.py	1;"	kind:file	line:1
-TcpClient	../Client.py	/^from jfSocket import EventTypes as ets, TcpClient$/;"	kind:namespace	line:4
-TcpClient	../Server.py	/^from jfSocket import EventTypes as ets, TcpServer, TcpClient$/;"	kind:namespace	line:5
-TcpClient	../jfSocket/TcpClient.py	/^class TcpClient(object):$/;"	kind:class	line:7
-TcpClient.py	../jfSocket/TcpClient.py	1;"	kind:file	line:1
-TcpServer	../Server.py	/^from jfSocket import EventTypes as ets, TcpServer, TcpClient$/;"	kind:namespace	line:5
-TcpServer	../jfSocket/TcpServer.py	/^class TcpServer(object):$/;"	kind:class	line:7
-TcpServer.py	../jfSocket/TcpServer.py	1;"	kind:file	line:1
-TcpSocketError	../jfSocket/__init__.py	/^class TcpSocketError(Exception):$/;"	kind:class	line:22
-__accept_client	../jfSocket/TcpServer.py	/^    def __accept_client(self):$/;"	kind:member	line:153
-__assign	../jfSocket/TcpClient.py	/^    def __assign(self, socket):$/;"	kind:member	line:130
-__init__	../jfSocket/CastReceiver.py	/^    def __init__(self, host, evts=None):$/;"	kind:member	line:8
-__init__	../jfSocket/TcpClient.py	/^    def __init__(self, socket=None, evts=None):$/;"	kind:member	line:13
-__init__	../jfSocket/TcpServer.py	/^    def __init__(self, ip, port):$/;"	kind:member	line:12
-__init__.py	../jfSocket/__init__.py	1;"	kind:file	line:1
-__onClientDisconnect	../jfSocket/TcpServer.py	/^    def __onClientDisconnect(self, *args):$/;"	kind:member	line:143
-__receive_handler	../jfSocket/CastReceiver.py	/^    def __receive_handler(self, socket):$/;"	kind:member	line:85
-__receiverHandler	../jfSocket/TcpClient.py	/^    def __receiverHandler(self, client):$/;"	kind:member	line:136
+TcpClient	../Client.py	/^from jfNet import EventTypes as ets, TcpClient$/;"	kind:namespace	line:4
+TcpClient	../Server.py	/^from jfNet import EventTypes as ets, TcpServer, TcpClient$/;"	kind:namespace	line:5
+TcpClient	../jfNet/TcpClient.py	/^class TcpClient(object):$/;"	kind:class	line:7
+TcpClient.py	../jfNet/TcpClient.py	1;"	kind:file	line:1
+TcpServer	../Server.py	/^from jfNet import EventTypes as ets, TcpServer, TcpClient$/;"	kind:namespace	line:5
+TcpServer	../jfNet/TcpServer.py	/^class TcpServer(object):$/;"	kind:class	line:7
+TcpServer.py	../jfNet/TcpServer.py	1;"	kind:file	line:1
+TcpSocketError	../jfNet/__init__.py	/^class TcpSocketError(Exception):$/;"	kind:class	line:22
+__accept_client	../jfNet/TcpServer.py	/^    def __accept_client(self):$/;"	kind:member	line:153
+__assign	../jfNet/TcpClient.py	/^    def __assign(self, socket):$/;"	kind:member	line:130
+__init__	../jfNet/CastReceiver.py	/^    def __init__(self, host, evts=None):$/;"	kind:member	line:8
+__init__	../jfNet/TcpClient.py	/^    def __init__(self, socket=None, evts=None):$/;"	kind:member	line:13
+__init__	../jfNet/TcpServer.py	/^    def __init__(self, ip, port):$/;"	kind:member	line:12
+__init__.py	../jfNet/__init__.py	1;"	kind:file	line:1
+__onClientDisconnect	../jfNet/TcpServer.py	/^    def __onClientDisconnect(self, *args):$/;"	kind:member	line:143
+__receive_handler	../jfNet/CastReceiver.py	/^    def __receive_handler(self, socket):$/;"	kind:member	line:85
+__receiverHandler	../jfNet/TcpClient.py	/^    def __receiverHandler(self, client):$/;"	kind:member	line:136
 _clients	../Client.py	/^_clients = {}$/;"	kind:variable	line:6
 _counter	../Client.py	/^_counter = {}$/;"	kind:variable	line:11
 _rcv	../multicast.py	/^_rcv = None$/;"	kind:variable	line:6
@@ -47,40 +47,40 @@ _svr	../Server.py	/^_svr = None$/;"	kind:variable	line:7
 _svrPort	../Client.py	/^_svrPort = None$/;"	kind:variable	line:12
 _timer	../Client.py	/^_timer = {}$/;"	kind:variable	line:9
 _times	../Client.py	/^_times = 0$/;"	kind:variable	line:8
-bind	../jfSocket/CastReceiver.py	/^    def bind(self, key=None, evt=None):$/;"	kind:member	line:69
-bind	../jfSocket/TcpClient.py	/^    def bind(self, key=None, evt=None):$/;"	kind:member	line:82
-bind	../jfSocket/TcpServer.py	/^    def bind(self, key=None, evt=None):$/;"	kind:member	line:80
-clients	../jfSocket/TcpServer.py	/^    def clients(self):$/;"	kind:member	line:48
-close	../jfSocket/TcpClient.py	/^    def close(self):$/;"	kind:member	line:96
-close	../jfSocket/TcpServer.py	/^    def close(self, remote=None):$/;"	kind:member	line:123
+bind	../jfNet/CastReceiver.py	/^    def bind(self, key=None, evt=None):$/;"	kind:member	line:69
+bind	../jfNet/TcpClient.py	/^    def bind(self, key=None, evt=None):$/;"	kind:member	line:82
+bind	../jfNet/TcpServer.py	/^    def bind(self, key=None, evt=None):$/;"	kind:member	line:80
+clients	../jfNet/TcpServer.py	/^    def clients(self):$/;"	kind:member	line:48
+close	../jfNet/TcpClient.py	/^    def close(self):$/;"	kind:member	line:96
+close	../jfNet/TcpServer.py	/^    def close(self, remote=None):$/;"	kind:member	line:123
 closeClient	../Server.py	/^def closeClient(*args):$/;"	kind:function	line:142
-connect	../jfSocket/TcpClient.py	/^    def connect(self, ip, port):$/;"	kind:member	line:58
+connect	../jfNet/TcpClient.py	/^    def connect(self, ip, port):$/;"	kind:member	line:58
 connectToServer	../Client.py	/^def connectToServer(*args):$/;"	kind:function	line:14
 createReceiver	../multicast.py	/^def createReceiver(*args):$/;"	kind:function	line:15
 createSender	../multicast.py	/^def createSender(*args):$/;"	kind:function	line:26
 datetime	../Server.py	/^import os, sys, time, traceback, datetime$/;"	kind:namespace	line:3
-datetime	../jfSocket/CastReceiver.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
-datetime	../jfSocket/TcpClient.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
-datetime	../jfSocket/TcpServer.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+datetime	../jfNet/CastReceiver.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+datetime	../jfNet/TcpClient.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+datetime	../jfNet/TcpServer.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
 datetime	../multicast.py	/^import os, sys, time, traceback, datetime$/;"	kind:namespace	line:3
 disconnectWithServer	../Client.py	/^def disconnectWithServer():$/;"	kind:function	line:28
-ets	../Client.py	/^from jfSocket import EventTypes as ets, TcpClient$/;"	kind:namespace	line:4
-ets	../Server.py	/^from jfSocket import EventTypes as ets, TcpServer, TcpClient$/;"	kind:namespace	line:5
-ets	../multicast.py	/^from jfSocket import EventTypes as ets, CastReceiver, CastSender$/;"	kind:namespace	line:4
-groups	../jfSocket/CastReceiver.py	/^    def groups(self):$/;"	kind:member	line:26
-host	../jfSocket/CastReceiver.py	/^    def host(self):$/;"	kind:member	line:29
-host	../jfSocket/TcpClient.py	/^    def host(self):$/;"	kind:member	line:43
-host	../jfSocket/TcpServer.py	/^    def host(self):$/;"	kind:member	line:32
-isAlive	../jfSocket/CastReceiver.py	/^    def isAlive(self):$/;"	kind:member	line:32
-isAlive	../jfSocket/TcpClient.py	/^    def isAlive(self):$/;"	kind:member	line:34
-isAlive	../jfSocket/TcpServer.py	/^    def isAlive(self):$/;"	kind:member	line:39
-joinGroup	../jfSocket/CastReceiver.py	/^    def joinGroup(self, ipAddr):$/;"	kind:member	line:66
-jskt	../jfSocket/CastReceiver.py	/^import jfSocket as jskt$/;"	kind:namespace	line:4
-jskt	../jfSocket/TcpClient.py	/^import jfSocket as jskt$/;"	kind:namespace	line:4
-jskt	../jfSocket/TcpServer.py	/^import jfSocket as jskt$/;"	kind:namespace	line:4
-logging	../jfSocket/CastReceiver.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
-logging	../jfSocket/TcpClient.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
-logging	../jfSocket/TcpServer.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+ets	../Client.py	/^from jfNet import EventTypes as ets, TcpClient$/;"	kind:namespace	line:4
+ets	../Server.py	/^from jfNet import EventTypes as ets, TcpServer, TcpClient$/;"	kind:namespace	line:5
+ets	../multicast.py	/^from jfNet import EventTypes as ets, CastReceiver, CastSender$/;"	kind:namespace	line:4
+groups	../jfNet/CastReceiver.py	/^    def groups(self):$/;"	kind:member	line:26
+host	../jfNet/CastReceiver.py	/^    def host(self):$/;"	kind:member	line:29
+host	../jfNet/TcpClient.py	/^    def host(self):$/;"	kind:member	line:43
+host	../jfNet/TcpServer.py	/^    def host(self):$/;"	kind:member	line:32
+isAlive	../jfNet/CastReceiver.py	/^    def isAlive(self):$/;"	kind:member	line:32
+isAlive	../jfNet/TcpClient.py	/^    def isAlive(self):$/;"	kind:member	line:34
+isAlive	../jfNet/TcpServer.py	/^    def isAlive(self):$/;"	kind:member	line:39
+joinGroup	../jfNet/CastReceiver.py	/^    def joinGroup(self, ipAddr):$/;"	kind:member	line:66
+jskt	../jfNet/CastReceiver.py	/^import jfNet as jskt$/;"	kind:namespace	line:4
+jskt	../jfNet/TcpClient.py	/^import jfNet as jskt$/;"	kind:namespace	line:4
+jskt	../jfNet/TcpServer.py	/^import jfNet as jskt$/;"	kind:namespace	line:4
+logging	../jfNet/CastReceiver.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+logging	../jfNet/TcpClient.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+logging	../jfNet/TcpServer.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
 multicast.py	../multicast.py	1;"	kind:file	line:1
 onClientConnected	../Server.py	/^def onClientConnected(*args):$/;"	kind:function	line:44
 onClientDisconnect	../Server.py	/^def onClientDisconnect(*args):$/;"	kind:function	line:47
@@ -99,53 +99,53 @@ onStarted	../multicast.py	/^def onStarted(*args):$/;"	kind:function	line:9
 onStoped	../multicast.py	/^def onStoped(*args):$/;"	kind:function	line:11
 os	../Client.py	/^import os, sys, traceback, time, random, threading$/;"	kind:namespace	line:3
 os	../Server.py	/^import os, sys, time, traceback, datetime$/;"	kind:namespace	line:3
-os	../jfSocket/CastReceiver.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
-os	../jfSocket/TcpClient.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
-os	../jfSocket/TcpServer.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+os	../jfNet/CastReceiver.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+os	../jfNet/TcpClient.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+os	../jfNet/TcpServer.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
 os	../multicast.py	/^import os, sys, time, traceback, datetime$/;"	kind:namespace	line:3
 pressureTest	../Client.py	/^def pressureTest(connections, times):$/;"	kind:function	line:134
 random	../Client.py	/^import os, sys, traceback, time, random, threading$/;"	kind:namespace	line:3
 randomStr	../Client.py	/^def randomStr(cnt):$/;"	kind:function	line:162
 randomThread	../Client.py	/^def randomThread(client, times):$/;"	kind:function	line:167
-remote	../jfSocket/TcpClient.py	/^    def remote(self):$/;"	kind:member	line:50
+remote	../jfNet/TcpClient.py	/^    def remote(self):$/;"	kind:member	line:50
 runServers	../Server.py	/^def runServers(ip, port):$/;"	kind:function	line:9
-send	../jfSocket/TcpClient.py	/^    def send(self, data):$/;"	kind:member	line:104
-send	../jfSocket/TcpServer.py	/^    def send(self, data, remote=None):$/;"	kind:member	line:94
+send	../jfNet/TcpClient.py	/^    def send(self, data):$/;"	kind:member	line:104
+send	../jfNet/TcpServer.py	/^    def send(self, data, remote=None):$/;"	kind:member	line:94
 sendData	../Client.py	/^def sendData(*args):$/;"	kind:function	line:123
 sendData	../Server.py	/^def sendData(*args):$/;"	kind:function	line:108
 showClients	../Server.py	/^def showClients():$/;"	kind:function	line:135
 socket	../Server.py	/^import socket$/;"	kind:namespace	line:4
-socket	../jfSocket/CastReceiver.py	/^import threading as td, socket$/;"	kind:namespace	line:5
-socket	../jfSocket/TcpClient.py	/^import threading as td, socket$/;"	kind:namespace	line:5
-socket	../jfSocket/TcpServer.py	/^import threading as td, socket$/;"	kind:namespace	line:5
-start	../jfSocket/CastReceiver.py	/^    def start(self):$/;"	kind:member	line:36
-start	../jfSocket/TcpServer.py	/^    def start(self):$/;"	kind:member	line:55
-stop	../jfSocket/CastReceiver.py	/^    def stop(self):$/;"	kind:member	line:61
-stop	../jfSocket/TcpServer.py	/^    def stop(self):$/;"	kind:member	line:72
+socket	../jfNet/CastReceiver.py	/^import threading as td, socket$/;"	kind:namespace	line:5
+socket	../jfNet/TcpClient.py	/^import threading as td, socket$/;"	kind:namespace	line:5
+socket	../jfNet/TcpServer.py	/^import threading as td, socket$/;"	kind:namespace	line:5
+start	../jfNet/CastReceiver.py	/^    def start(self):$/;"	kind:member	line:36
+start	../jfNet/TcpServer.py	/^    def start(self):$/;"	kind:member	line:55
+stop	../jfNet/CastReceiver.py	/^    def stop(self):$/;"	kind:member	line:61
+stop	../jfNet/TcpServer.py	/^    def stop(self):$/;"	kind:member	line:72
 stopServer	../Server.py	/^def stopServer():$/;"	kind:function	line:36
 sys	../Client.py	/^import os, sys, traceback, time, random, threading$/;"	kind:namespace	line:3
 sys	../Server.py	/^import os, sys, time, traceback, datetime$/;"	kind:namespace	line:3
-sys	../jfSocket/CastReceiver.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
-sys	../jfSocket/TcpClient.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
-sys	../jfSocket/TcpServer.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+sys	../jfNet/CastReceiver.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+sys	../jfNet/TcpClient.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+sys	../jfNet/TcpServer.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
 sys	../multicast.py	/^import os, sys, time, traceback, datetime$/;"	kind:namespace	line:3
-td	../jfSocket/CastReceiver.py	/^import threading as td, socket$/;"	kind:namespace	line:5
-td	../jfSocket/TcpClient.py	/^import threading as td, socket$/;"	kind:namespace	line:5
-td	../jfSocket/TcpServer.py	/^import threading as td, socket$/;"	kind:namespace	line:5
+td	../jfNet/CastReceiver.py	/^import threading as td, socket$/;"	kind:namespace	line:5
+td	../jfNet/TcpClient.py	/^import threading as td, socket$/;"	kind:namespace	line:5
+td	../jfNet/TcpServer.py	/^import threading as td, socket$/;"	kind:namespace	line:5
 threading	../Client.py	/^import os, sys, traceback, time, random, threading$/;"	kind:namespace	line:3
 time	../Client.py	/^import os, sys, traceback, time, random, threading$/;"	kind:namespace	line:3
 time	../Server.py	/^import os, sys, time, traceback, datetime$/;"	kind:namespace	line:3
-time	../jfSocket/CastReceiver.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
-time	../jfSocket/TcpClient.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
-time	../jfSocket/TcpServer.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+time	../jfNet/CastReceiver.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+time	../jfNet/TcpClient.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+time	../jfNet/TcpServer.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
 time	../multicast.py	/^import os, sys, time, traceback, datetime$/;"	kind:namespace	line:3
 traceback	../Client.py	/^import os, sys, traceback, time, random, threading$/;"	kind:namespace	line:3
 traceback	../Server.py	/^import os, sys, time, traceback, datetime$/;"	kind:namespace	line:3
-traceback	../jfSocket/CastReceiver.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
-traceback	../jfSocket/TcpClient.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
-traceback	../jfSocket/TcpServer.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+traceback	../jfNet/CastReceiver.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+traceback	../jfNet/TcpClient.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
+traceback	../jfNet/TcpServer.py	/^import os, sys, time, logging, traceback, datetime$/;"	kind:namespace	line:3
 traceback	../multicast.py	/^import os, sys, time, traceback, datetime$/;"	kind:namespace	line:3
-unique	../jfSocket/__init__.py	/^from enum import Enum, unique$/;"	kind:namespace	line:8
+unique	../jfNet/__init__.py	/^from enum import Enum, unique$/;"	kind:namespace	line:8
 waitStdin	../Client.py	/^def waitStdin():$/;"	kind:function	line:68
 waitStdin	../Server.py	/^def waitStdin():$/;"	kind:function	line:60
 waitStdin	../multicast.py	/^def waitStdin():$/;"	kind:function	line:29

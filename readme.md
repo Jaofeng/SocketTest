@@ -1,4 +1,4 @@
-# jfSocket - Custom Socket Package
+# jfNet - Custom Socket Package
 
 |Author|Chen Jaofeng|
 |---|---
@@ -68,7 +68,7 @@ class EventTypes(Enum):
 ### SocketError
 
 ```python
-raise jfSocket.SocketError(errno, err=None):
+raise jfNet.SocketError(errno, err=None):
 ```
 
 用於錯誤回傳
@@ -408,7 +408,7 @@ mcSnd.send(remote, data)
 
 ## 回呼函式格式
 
-為提供 jfSocket 所有類別物件的事件回傳，請使用以下格式定義回呼函式：
+為提供 jfNet 所有類別物件的事件回傳，請使用以下格式定義回呼函式：
 
 ```python
 def callbackName(*args):
