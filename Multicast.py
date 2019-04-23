@@ -13,17 +13,21 @@ def toHexStr(arr):
 
 def onStarted(*args):
     if isinstance(args[0], jcr.CastReceiver):
-        print('  -> Multicast Receiver Started...')
-        if len(_rcv.groups) != 0:
-            print('     -> {}'.format(', '.join(_rcv.groups)))
+        print(' -> Multicast Receiver Started...')
+        # if len(_rcv.groups) != 0:
+        #     print('     -> {}'.format(', '.join(_rcv.groups)))
     elif isinstance(args[0], jcr.CastSender):
-        print('  -> Multicast Sender Started...')
+        print(' -> Multicast Sender Started...')
 
 def onStoped(*args):
     if isinstance(args[0], jcr.CastReceiver):
         print('  -> Multicast Receiver Stoped...')
     elif isinstance(args[0], jcr.CastSender):
         print('  -> Multicast Sender Stoped...')
+
+def onJoinedGroup(*args):
+    ip = args[1]
+    print(' -> Joined {}'.format(ip))
 
 def onReceived(*args):
     ipL, portL = args[2]
@@ -60,11 +64,11 @@ def createReceiver(*args):
         idx = 2
     else:
         raise 'Command Error'
-    _rcv.bind(key=ets.STARTED, evt=onStarted)
-    _rcv.bind(key=ets.STOPED, evt=onStoped)
-    _rcv.bind(key=ets.RECEIVED, evt=onReceived)
-    for x in args[idx:]:
-        _rcv.joinGroup(x)
+    _rcv.bind(key=EventTypes.STARTED, evt=onStarted)
+    _rcv.bind(key=EventTypes.STOPED, evt=onStoped)
+    _rcv.bind(key=EventTypes.RECEIVED, evt=onReceived)
+    _rcv.bind(key=EventTypes.JOINED_GROUP, evt=onJoinedGroup)
+    _rcv.joinGroup(args[idx:])
     _rcv.start()
 
 def stopReceiver(*args):
@@ -76,8 +80,8 @@ def stopReceiver(*args):
 def createSender(*args):
     global _snd
     _snd = jcs.CastSender()
-    _snd.bind(key=ets.SENDED, evt=onSended)
-    _snd.bind(key=ets.SENDFAIL, evt=onSendfail)
+    _snd.bind(key=EventTypes.SENDED, evt=onSended)
+    _snd.bind(key=EventTypes.SENDFAIL, evt=onSendfail)
 
 def stopSender(*args):
     global _snd

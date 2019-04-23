@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 # # -*- coding: UTF-8 -*-
 
-import os, sys, time, logging, traceback, datetime
+import os, sys, time, logging, traceback, datetime, struct
 import threading as td, socket
 from jfNet import *
 
@@ -19,9 +19,7 @@ class CastSender(object):
             for x in evts:
                 self.__events[x] = evts[x]
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
-        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
-        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.INADDR_ANY)	
+        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 32))
 
     def bind(self, key=None, evt=None):
         """綁定回呼(callback)函式  

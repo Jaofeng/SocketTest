@@ -28,6 +28,7 @@ class EventTypes(Enum):
     SENDFAIL = 'onSendFail'
     STARTED = 'onStarted'
     STOPED = 'onStoped'
+    JOINED_GROUP = 'onJoinedGroup'
 
 class SocketError(Exception):
     """自訂錯誤類別  
