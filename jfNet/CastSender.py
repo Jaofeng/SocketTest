@@ -1,48 +1,48 @@
 #! /usr/bin/env python3
 # # -*- coding: UTF-8 -*-
 
-import os, sys, time, logging, traceback, datetime, struct
-import threading as td, socket
-from jfNet import *
+import struct
+import socket
+from . import EventTypes
 
-class CastSender(object):
+
+class CastSender:
     """建立一個發送 Multicast 多播的連線類別
-    傳入參數:  
+    傳入參數:
         `evts` `dict{str:def,...}` -- 回呼事件定義，預設為 `None`
     """
-    def __init__(self, evts=None):
-        self.__events = {
-            EventTypes.SENDED : None,
-            EventTypes.SENDFAIL : None
-        }
-        if evts:
-            for x in evts:
-                self.__events[x] = evts[x]
-        self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 32))
+    _socket: socket.socket = None
+    _events = {
+        EventTypes.SENDED: None,
+        EventTypes.SENDFAIL: None
+    }
 
-    def bind(self, key=None, evt=None):
-        """綁定回呼(callback)函式  
-        傳入參數:  
-            `key` `str` -- 回呼事件代碼；為避免錯誤，建議使用 *EventTypes* 列舉值  
-            `evt` `def` -- 回呼(callback)函式  
-        引發錯誤:  
-            `KeyError` -- 回呼事件代碼錯誤  
+    def __init__(self):
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 32))
+
+    def bind(self, key:str, evt=None):
+        """綁定回呼(callback)函式
+        傳入參數:
+            `key` `str` -- 回呼事件代碼；為避免錯誤，建議使用 *EventTypes* 列舉值
+            `evt` `def` -- 回呼(callback)函式
+        引發錯誤:
+            `KeyError` -- 回呼事件代碼錯誤
             `TypeError` -- 型別錯誤，必須為可呼叫執行的函式
         """
-        if key not in self.__events:
+        if key not in self._events:
             raise KeyError('key:\'{}\' not found!'.format(key))
         if evt is not None and not callable(evt):
             raise TypeError('evt:\'{}\' is not a function!'.format(evt))
-        self.__events[key] = evt
-        
-    def send(self, remote, data):
-        """發送資料至多播位址  
-        傳入參數:  
+        self._events[key] = evt
+
+    def send(self, remote:tuple, data):
+        """發送資料至多播位址
+        傳入參數:
             `remote` `tuple(ip, port)` -- 多播位址
-            `data` `str` -- 欲傳送的資料  
-        引發錯誤:  
-            `jfSocket.SocketError` -- 遠端連線已斷開  
+            `data` `str or bytearray` -- 欲傳送的資料
+        引發錯誤:
+            `jfSocket.SocketError` -- 遠端連線已斷開
             `Exception` -- 回呼的錯誤函式
         """
         v = socket.inet_aton(remote[0])[0]
@@ -57,17 +57,11 @@ class CastSender(object):
         elif isinstance(data, bytearray):
             ba = data[:]
         try:
-            self.__socket.sendto(ba, (remote[0], int(remote[1])))
+            self._socket.sendto(ba, (remote[0], int(remote[1])))
         except Exception as e:
-            if self.__events[EventTypes.SENDFAIL] is not None:
-                try:
-                    self.__events[EventTypes.SENDFAIL](self, ba, remote, e)
-                except Exception as ex:
-                    raise ex
+            if self._events[EventTypes.SENDFAIL]:
+                self._events[EventTypes.SENDFAIL](self, ba, remote, e)
         else:
-            if self.__events[EventTypes.SENDED] is not None:
-                try:
-                    self.__events[EventTypes.SENDED](self, ba, remote)
-                except Exception as ex:
-                    raise ex
-        
+            if self._events[EventTypes.SENDED]:
+                self._events[EventTypes.SENDED](self, ba, remote)
+      
