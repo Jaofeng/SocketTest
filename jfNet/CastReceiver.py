@@ -60,7 +60,7 @@ class CastReceiver:
             *True* : 等待連線中
             *False* : 停止等待
         '''
-        return not self._receiveHandler and self._receiveHandler.is_alive()
+        return self._receiveHandler and self._receiveHandler.is_alive()
 
     @property
     def reuseAddr(self) -> bool:
@@ -250,11 +250,8 @@ class CastReceiver:
                 # print(' -> error({})'.format(err.errno))
                 raise
         else:
-            if self._events[EventTypes.JOINED_GROUP] is not None:
-                try:
-                    self._events[EventTypes.JOINED_GROUP](self, ip)
-                except:
-                    raise
+            if self._events[EventTypes.JOINED_GROUP]:
+                self._events[EventTypes.JOINED_GROUP](self, ip)
 
     def _doDropMembership(self, ip):
         try:
