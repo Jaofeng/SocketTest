@@ -64,4 +64,3 @@ class CastSender:
         else:
             if self._events[EventTypes.SENDED]:
                 self._events[EventTypes.SENDED](self, ba, remote)
-      
