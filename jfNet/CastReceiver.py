@@ -7,7 +7,7 @@ import errno
 import struct
 import threading
 import socket
-from . import EventTypes
+from . import EventTypes, SocketError
 
 
 class CastReceiver:
@@ -131,11 +131,8 @@ class CastReceiver:
             time.sleep(0.1)
         for x in self._groups:
             self._doAddMembership(x)
-        if self.isAlive and self._events[EventTypes.STARTED] is not None:
-            try:
-                self._events[EventTypes.STARTED](self)
-            except Exception as ex:
-                raise
+        if self.isAlive and self._events[EventTypes.STARTED]:
+            self._events[EventTypes.STARTED](self)
 
     def stop(self):
         '''停止監聽
