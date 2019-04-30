@@ -8,6 +8,7 @@ from jfNet import *
 _rcv = None
 _snd = None
 _counter = 0
+_cmds = []
 
 
 def toHexStr(arr):
@@ -119,45 +120,54 @@ def dropGroup(*args):
 
 
 def waitStdin():
-    global _rcv
-    global _snd
+    global _cmds
     cmd = ''
+    idx = 0
     while cmd != 'exit':
         try:
-            cmd = input('Command: ')
+            cmd = input(': ')
             if len(cmd) == 0:
                 continue
             cmds = cmd.split()
-            try:
-                if cmds[0] == 'exit':
-                    if _snd:
-                        stopSender()
-                    if _rcv:
-                        stopReceiver()
-                    break
-                elif cmds[0] == 'start':
-                    if cmds[1] == 'recv':
-                        createReceiver(*(cmds[2:]))
-                    elif cmds[1] == 'send':
-                        createSender(*(cmds[2:]))
-                elif cmds[0] == 'stop':
-                    if cmds[1] == 'recv' and _rcv:
-                        stopReceiver()
-                    elif cmds[1] == 'send' and _snd:
-                        stopSender()
-                elif cmds[0] == 'join':
-                    joinGroup(*(cmds[1:]))
-                elif cmds[0] == 'drop':
-                    dropGroup(*(cmds[1:]))
-                elif cmds[0] == 'send':
-                    sendData(*(cmds[1:]))
-            except:
-                print(traceback.format_exc())
-            else:
-                pass
+            execCommand(cmd)
+            _cmds.append(cmd)
+            idx = 0
         except KeyboardInterrupt:
             break
     print
+
+
+def execCommand(cmd):
+    global _rcv
+    global _snd
+    # cmd = input('Command: ')
+    if len(cmd) == 0:
+        return
+    cmds = cmd.split()
+    try:
+        if cmds[0] == 'exit':
+            if _snd:
+                stopSender()
+            if _rcv:
+                stopReceiver()
+        elif cmds[0] == 'start':
+            if cmds[1] == 'recv':
+                createReceiver(*(cmds[2:]))
+            elif cmds[1] == 'send':
+                createSender(*(cmds[2:]))
+        elif cmds[0] == 'stop':
+            if cmds[1] == 'recv' and _rcv:
+                stopReceiver()
+            elif cmds[1] == 'send' and _snd:
+                stopSender()
+        elif cmds[0] == 'join':
+            joinGroup(*(cmds[1:]))
+        elif cmds[0] == 'drop':
+            dropGroup(*(cmds[1:]))
+        elif cmds[0] == 'send':
+            sendData(*(cmds[1:]))
+    except:
+        print(traceback.format_exc())
 
 
 if __name__ == '__main__':
