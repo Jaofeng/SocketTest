@@ -14,7 +14,6 @@ class CastReceiver:
     '''建立多播監聽器(Multicast)類別
     傳入參數:
         `port` `int` -- 欲監聽的通訊埠號
-        `evts` `dict{str:def,...}` -- 回呼事件定義，預設為 `None`
     '''
 
     _socket:socket.socket = None
@@ -112,7 +111,7 @@ class CastReceiver:
             `Exception` -- 回呼的錯誤函式
         '''
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 32))
+        # self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 32))
         self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 if self._reuseAddr else 0)
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1 if self._reusePort else 0)
@@ -144,7 +143,7 @@ class CastReceiver:
             self._socket.close()
         self._socket = None
         if self._receiveHandler is not None:
-            self._receiveHandler.join(2.5)
+            self._receiveHandler.join(1)
         self._receiveHandler = None
 
     def joinGroup(self, ips:list):
@@ -187,7 +186,7 @@ class CastReceiver:
             if self._socket:
                 self._doDropMembership(x)
 
-    def bind(self, key:str=None, evt=None):
+    def bind(self, key:str = None, evt=None):
         '''綁定回呼(callback)函式
         傳入參數:
             `key` `str` -- 回呼事件代碼；為避免錯誤，建議使用 *EventTypes* 列舉值
@@ -205,7 +204,7 @@ class CastReceiver:
     # Private Methods
     def _receive_handler(self):
         # 使用非阻塞方式等待資料，逾時時間為 2 秒
-        self._socket.settimeout(2)
+        self._socket.settimeout(1)
         buff = bytearray(self.recvBuffer)
         while not self._stop:
             try:
@@ -219,7 +218,7 @@ class CastReceiver:
                     continue
             except OSError:
                 break
-            except:
+            except Exception:
                 # 先攔截並顯示，待未來確定可能會發生的錯誤再進行處理
                 print(traceback.format_exc())
                 break
