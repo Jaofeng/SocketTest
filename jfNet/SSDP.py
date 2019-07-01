@@ -3,7 +3,6 @@
 
 import time, threading, re
 from logging import ERROR, WARN, INFO
-from collections import namedtuple
 from enum import Enum
 from . import EventTypes
 from .CastReceiver import CastReceiver
@@ -79,26 +78,22 @@ class SsdpContent(SsdpInfo):
 
 
 class SsdpService:
-    __rcv: CastReceiver = None
-    __snd: CastSender = None
-    __evt_exit: threading.Event = None
-    __evt_stop_search: threading.Event = None
-    __evt_stop_notify: threading.Event = None
-    __events: dict = {
-        EventTypes.STARTED: None,
-        EventTypes.STOPED: None,
-        SsdpEvents.RECEIVED_SEARCH: None,
-        SsdpEvents.RECEIVED_NOTIFY: None,
-        SsdpEvents.RECEIVED_BYEBYE: None,
-        SsdpEvents.SENDED_SEARCH: None,
-        SsdpEvents.SENDED_NOTIFY: None,
-        SsdpEvents.LOGGING: None
-    }
-    __devices: list = []
-    __st_rule = None
-    __nt_rule = None
-
     def __init__(self):
+        self.__rcv: CastReceiver = None
+        self.__snd: CastSender = None
+        self.__events: dict = {
+            EventTypes.STARTED: None,
+            EventTypes.STOPED: None,
+            SsdpEvents.RECEIVED_SEARCH: None,
+            SsdpEvents.RECEIVED_NOTIFY: None,
+            SsdpEvents.RECEIVED_BYEBYE: None,
+            SsdpEvents.SENDED_SEARCH: None,
+            SsdpEvents.SENDED_NOTIFY: None,
+            SsdpEvents.LOGGING: None
+        }
+        self.__devices: list = []
+        self.__st_rule = None
+        self.__nt_rule = None
         self.__evt_stop_notify = threading.Event()
         self.__evt_stop_search = threading.Event()
         self.__evt_exit = threading.Event()

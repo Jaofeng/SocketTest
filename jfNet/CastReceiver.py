@@ -15,27 +15,24 @@ class CastReceiver:
     傳入參數:
         `port` `int` -- 欲監聽的通訊埠號
     '''
-
-    _socket:socket.socket = None
-    _host:tuple = None
-    _events:dict = {
-        EventTypes.STARTED: None,
-        EventTypes.STOPED: None,
-        EventTypes.RECEIVED: None,
-        EventTypes.JOINED_GROUP: None
-    }
-    _groups = []
-    _stop = False
-    _receiveHandler: threading.Thread = None
-    _reuseAddr = True
-    _reusePort = False
-    recvBuffer = 256
-
     def __init__(self, host):
         if isinstance(host, int):
-            self._host = ('', host)
+            self.__host: tuple = ('', host)
         elif isinstance(host, tuple):
-            self._host = host
+            self.__host: tuple = host
+        self.__events:dict = {
+            EventTypes.STARTED: None,
+            EventTypes.STOPED: None,
+            EventTypes.RECEIVED: None,
+            EventTypes.JOINED_GROUP: None
+        }
+        self.__socket: socket.socket = None
+        self.__groups: list = []
+        self.__stop = False
+        self.__receiveHandler: threading.Thread = None
+        self.__reuseAddr = True
+        self.__reusePort = False
+        self.recvBuffer = 256
 
     # Public Properties
     @property
@@ -43,14 +40,14 @@ class CastReceiver:
         '''取得已註冊監聽的群組IP
         回傳: `list(str, ...)` -- 已註冊的IP
         '''
-        return self._groups[:]
+        return self.__groups[:]
 
     @property
     def host(self) -> tuple:
         '''回傳本端的通訊埠號
         回傳: `tuple(ip, port)`
         '''
-        return self._host
+        return self.__host
 
     @property
     def isAlive(self) -> bool:
@@ -59,7 +56,7 @@ class CastReceiver:
             *True* : 等待連線中
             *False* : 停止等待
         '''
-        return self._receiveHandler and self._receiveHandler.is_alive()
+        return self.__receiveHandler and self.__receiveHandler.is_alive()
 
     @property
     def reuseAddr(self) -> bool:
@@ -68,7 +65,7 @@ class CastReceiver:
             *True* : 可重複使用
             *False* : 不可重複使用
         '''
-        return self._reuseAddr
+        return self.__reuseAddr
 
     @reuseAddr.setter
     def reuseAddr(self, value: bool):
@@ -76,10 +73,10 @@ class CastReceiver:
         '''
         if not isinstance(value, bool):
             raise TypeError()
-        self._reuseAddr = value
-        if self._socket:
-            self._socket.setsockopt(
-                socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 if self._reuseAddr else 0
+        self.__reuseAddr = value
+        if self.__socket:
+            self.__socket.setsockopt(
+                socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 if self.__reuseAddr else 0
             )
 
     @property
@@ -89,7 +86,7 @@ class CastReceiver:
             *True* : 可重複使用
             *False* : 不可重複使用
         '''
-        return self._reusePort
+        return self.__reusePort
 
     @reusePort.setter
     def reusePort(self, value:bool):
@@ -97,10 +94,10 @@ class CastReceiver:
         '''
         if not isinstance(value, bool):
             raise TypeError()
-        self._reusePort = value
-        if self._socket:
-            self._socket.setsockopt(
-                socket.SOL_SOCKET, socket.SO_REUSEPORT, 1 if self._reusePort else 0
+        self.__reusePort = value
+        if self.__socket:
+            self.__socket.setsockopt(
+                socket.SOL_SOCKET, socket.SO_REUSEPORT, 1 if self.__reusePort else 0
             )
 
     # Public Methods
@@ -110,41 +107,41 @@ class CastReceiver:
             `socket.error` -- 監聽 IP 設定錯誤
             `Exception` -- 回呼的錯誤函式
         '''
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         # self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 32))
-        self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
-        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 if self._reuseAddr else 0)
-        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1 if self._reusePort else 0)
+        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
+        self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 if self.__reuseAddr else 0)
+        self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1 if self.__reusePort else 0)
         try:
-            self._socket.bind(self._host)
+            self.__socket.bind(self.__host)
         except socket.error as ex:
             if ex.errno == 48:
                 raise SocketError(1005)
             else:
                 raise ex
-        self._receiveHandler = threading.Thread(target=self._receive_handler)
-        self._receiveHandler.setDaemon(True)
-        self._receiveHandler.start()
+        self.__receiveHandler = threading.Thread(target=self._receive_handler)
+        self.__receiveHandler.setDaemon(True)
+        self.__receiveHandler.start()
         now = time.time()
-        while not self._receiveHandler.isAlive and (time.time() - now) <= 1:
+        while not self.__receiveHandler.isAlive and (time.time() - now) <= 1:
             time.sleep(0.1)
-        for x in self._groups:
+        for x in self.__groups:
             self._doAddMembership(x)
-        if self.isAlive and self._events[EventTypes.STARTED]:
-            self._events[EventTypes.STARTED](self)
+        if self.isAlive and self.__events[EventTypes.STARTED]:
+            self.__events[EventTypes.STARTED](self)
 
     def stop(self):
         '''停止監聽
         '''
-        self._stop = True
-        if self._socket:
-            for x in self._groups:
+        self.__stop = True
+        if self.__socket:
+            for x in self.__groups:
                 self._doDropMembership(x)
-            self._socket.close()
-        self._socket = None
-        if self._receiveHandler is not None:
-            self._receiveHandler.join(1)
-        self._receiveHandler = None
+            self.__socket.close()
+        self.__socket = None
+        if self.__receiveHandler is not None:
+            self.__receiveHandler.join(1)
+        self.__receiveHandler = None
 
     def joinGroup(self, ips:list):
         '''加入監聽IP
@@ -160,10 +157,10 @@ class CastReceiver:
                 v = ord(v)
             if v not in range(224, 240):
                 raise SocketError(1004)
-            if x in self._groups:
+            if x in self.__groups:
                 raise SocketError(1002)
-            self._groups.append(x)
-            if self._socket:
+            self.__groups.append(x)
+            if self.__socket:
                 self._doAddMembership(x)
 
     def dropGroup(self, ips:list):
@@ -180,10 +177,10 @@ class CastReceiver:
                 v = ord(v)
             if v not in range(224, 240):
                 raise SocketError(1004)
-            if x not in self._groups:
+            if x not in self.__groups:
                 raise SocketError(1003)
-            self._groups.remove(x)
-            if self._socket:
+            self.__groups.remove(x)
+            if self.__socket:
                 self._doDropMembership(x)
 
     def bind(self, key:str = None, evt=None):
@@ -195,24 +192,24 @@ class CastReceiver:
             `KeyError` -- 回呼事件代碼錯誤
             `TypeError` -- 型別錯誤，必須為可呼叫執行的函式
         '''
-        if key not in self._events:
+        if key not in self.__events:
             raise KeyError('key:"{}" not found!'.format(key))
         if evt is not None and not callable(evt):
             raise TypeError('evt:"{}" is not a function!'.format(evt))
-        self._events[key] = evt
+        self.__events[key] = evt
 
     # Private Methods
     def _receive_handler(self):
         # 使用非阻塞方式等待資料，逾時時間為 2 秒
-        self._socket.settimeout(1)
+        self.__socket.settimeout(1)
         buff = bytearray(self.recvBuffer)
-        while not self._stop:
+        while not self.__stop:
             try:
-                nbytes, addr = self._socket.recvfrom_into(buff)
+                nbytes, addr = self.__socket.recvfrom_into(buff)
                 data = buff[:nbytes]
             except socket.timeout:
                 # 等待資料逾時，再重新等待
-                if self._stop:
+                if self.__stop:
                     break
                 else:
                     continue
@@ -227,15 +224,15 @@ class CastReceiver:
                 break
             else:
                 # Received Data
-                if self._events[EventTypes.RECEIVED]:
-                    self._events[EventTypes.RECEIVED](self, data, self._socket.getsockname(), addr)
-        if self._events[EventTypes.STOPED]:
-            self._events[EventTypes.STOPED](self)
+                if self.__events[EventTypes.RECEIVED]:
+                    self.__events[EventTypes.RECEIVED](self, data, self.__socket.getsockname(), addr)
+        if self.__events[EventTypes.STOPED]:
+            self.__events[EventTypes.STOPED](self)
 
     def _doAddMembership(self, ip):
         try:
             mreq = struct.pack('4sL', socket.inet_aton(ip), socket.INADDR_ANY)
-            self._socket.setsockopt(
+            self.__socket.setsockopt(
                 socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq
             )
         except socket.error as err:
@@ -246,13 +243,13 @@ class CastReceiver:
                 # print(' -> error({})'.format(err.errno))
                 raise
         else:
-            if self._events[EventTypes.JOINED_GROUP]:
-                self._events[EventTypes.JOINED_GROUP](self, ip)
+            if self.__events[EventTypes.JOINED_GROUP]:
+                self.__events[EventTypes.JOINED_GROUP](self, ip)
 
     def _doDropMembership(self, ip):
         try:
             mreq = struct.pack('4sL', socket.inet_aton(ip), socket.INADDR_ANY)
-            self._socket.setsockopt(
+            self.__socket.setsockopt(
                 socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP, mreq
             )
         except socket.error as err:

@@ -11,15 +11,13 @@ class CastSender:
     傳入參數:
         `evts` `dict{str:def,...}` -- 回呼事件定義，預設為 `None`
     """
-    _socket: socket.socket = None
-    _events = {
-        EventTypes.SENDED: None,
-        EventTypes.SENDFAIL: None
-    }
-
     def __init__(self, ttl: int = 8):
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', ttl))
+        self.__events: dict = {
+            EventTypes.SENDED: None,
+            EventTypes.SENDFAIL: None
+        }
+        self.__socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', ttl))
 
     def bind(self, key:str, evt=None):
         """綁定回呼(callback)函式
@@ -30,11 +28,11 @@ class CastSender:
             `KeyError` -- 回呼事件代碼錯誤
             `TypeError` -- 型別錯誤，必須為可呼叫執行的函式
         """
-        if key not in self._events:
+        if key not in self.__events:
             raise KeyError('key:\'{}\' not found!'.format(key))
         if evt is not None and not callable(evt):
             raise TypeError('evt:\'{}\' is not a function!'.format(evt))
-        self._events[key] = evt
+        self.__events[key] = evt
 
     def send(self, remote:tuple, data):
         """發送資料至多播位址
@@ -57,10 +55,10 @@ class CastSender:
         elif isinstance(data, bytearray):
             ba = data[:]
         try:
-            self._socket.sendto(ba, (remote[0], int(remote[1])))
+            self.__socket.sendto(ba, (remote[0], int(remote[1])))
         except Exception as e:
-            if self._events[EventTypes.SENDFAIL]:
-                self._events[EventTypes.SENDFAIL](self, ba, remote, e)
+            if self.__events[EventTypes.SENDFAIL]:
+                self.__events[EventTypes.SENDFAIL](self, ba, remote, e)
         else:
-            if self._events[EventTypes.SENDED]:
-                self._events[EventTypes.SENDED](self, ba, remote)
+            if self.__events[EventTypes.SENDED]:
+                self.__events[EventTypes.SENDED](self, ba, remote)
