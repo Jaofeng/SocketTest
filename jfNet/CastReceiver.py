@@ -1,12 +1,7 @@
 #! /usr/bin/env python3
 # # -*- coding: UTF-8 -*-
 
-import time
-import traceback
-import errno
-import struct
-import threading
-import socket
+import time, sys, errno, struct, threading, socket
 from . import EventTypes, SocketError
 
 
@@ -20,11 +15,13 @@ class CastReceiver:
             self.__host: tuple = ('', host)
         elif isinstance(host, tuple):
             self.__host: tuple = host
-        self.__events:dict = {
+        self.__events: dict = {
             EventTypes.STARTED: None,
             EventTypes.STOPED: None,
             EventTypes.RECEIVED: None,
-            EventTypes.JOINED_GROUP: None
+            EventTypes.JOINED_GROUP: None,
+            EventTypes.SENDED: None,
+            EventTypes.SENDFAIL: None
         }
         self.__socket: socket.socket = None
         self.__groups: list = []
@@ -95,10 +92,8 @@ class CastReceiver:
         if not isinstance(value, bool):
             raise TypeError()
         self.__reusePort = value
-        if self.__socket:
-            self.__socket.setsockopt(
-                socket.SOL_SOCKET, socket.SO_REUSEPORT, 1 if self.__reusePort else 0
-            )
+        if self.__socket and not sys.platform.startswith('win'):
+            self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1 if self.__reusePort else 0)
 
     # Public Methods
     def start(self):
@@ -109,9 +104,9 @@ class CastReceiver:
         '''
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         # self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 32))
-        self.__socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
         self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 if self.__reuseAddr else 0)
-        self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1 if self.__reusePort else 0)
+        if not sys.platform.startswith('win'):
+            self.__socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1 if self.__reusePort else 0)
         try:
             self.__socket.bind(self.__host)
         except socket.error as ex:
@@ -119,14 +114,14 @@ class CastReceiver:
                 raise SocketError(1005)
             else:
                 raise ex
-        self.__receiveHandler = threading.Thread(target=self._receive_handler)
+        self.__receiveHandler = threading.Thread(target=self.__receive_handler)
         self.__receiveHandler.setDaemon(True)
         self.__receiveHandler.start()
         now = time.time()
         while not self.__receiveHandler.isAlive and (time.time() - now) <= 1:
             time.sleep(0.1)
         for x in self.__groups:
-            self._doAddMembership(x)
+            self.__doAddMembership(x)
         if self.isAlive and self.__events[EventTypes.STARTED]:
             self.__events[EventTypes.STARTED](self)
 
@@ -136,7 +131,7 @@ class CastReceiver:
         self.__stop = True
         if self.__socket:
             for x in self.__groups:
-                self._doDropMembership(x)
+                self.__doDropMembership(x)
             self.__socket.close()
         self.__socket = None
         if self.__receiveHandler is not None:
@@ -161,7 +156,7 @@ class CastReceiver:
                 raise SocketError(1002)
             self.__groups.append(x)
             if self.__socket:
-                self._doAddMembership(x)
+                self.__doAddMembership(x)
 
     def dropGroup(self, ips:list):
         '''移除監聽清單中的 IP
@@ -181,7 +176,7 @@ class CastReceiver:
                 raise SocketError(1003)
             self.__groups.remove(x)
             if self.__socket:
-                self._doDropMembership(x)
+                self.__doDropMembership(x)
 
     def bind(self, key:str = None, evt=None):
         '''綁定回呼(callback)函式
@@ -198,38 +193,57 @@ class CastReceiver:
             raise TypeError('evt:"{}" is not a function!'.format(evt))
         self.__events[key] = evt
 
+    def send(self, remote:tuple, data):
+        """以 UDP 方式發送資料
+        傳入參數:
+            `remote` `tuple(ip, port)` -- 遠端位址
+            `data` `str or bytearray` -- 欲傳送的資料
+        引發錯誤:
+            `jfSocket.SocketError` -- 遠端連線已斷開
+            `Exception` -- 回呼的錯誤函式
+        """
+        ba = None
+        if isinstance(data, str):
+            data = data.encode('utf-8')
+            ba = bytearray(data)
+        elif isinstance(data, bytearray) or isinstance(data, bytes):
+            ba = data[:]
+        try:
+            self.__socket.sendto(ba, (remote[0], int(remote[1])))
+        except Exception as e:
+            if self.__events[EventTypes.SENDFAIL]:
+                self.__events[EventTypes.SENDFAIL](self, ba, remote, e)
+        else:
+            if self.__events[EventTypes.SENDED]:
+                self.__events[EventTypes.SENDED](self, ba, remote)
+
     # Private Methods
-    def _receive_handler(self):
+    def __receive_handler(self):
         # 使用非阻塞方式等待資料，逾時時間為 2 秒
-        self.__socket.settimeout(1)
-        buff = bytearray(self.recvBuffer)
+        self.__socket.settimeout(0.5)
         while not self.__stop:
             try:
-                nbytes, addr = self.__socket.recvfrom_into(buff)
-                data = buff[:nbytes]
+                data, addr = self.__socket.recvfrom(self.recvBuffer)
             except socket.timeout:
                 # 等待資料逾時，再重新等待
                 if self.__stop:
                     break
-                else:
-                    continue
             except OSError:
                 break
             except Exception:
                 # 先攔截並顯示，待未來確定可能會發生的錯誤再進行處理
+                import traceback
                 print(traceback.format_exc())
                 break
-            if not data:
-                # 空資料，認定遠端已斷線
-                break
             else:
-                # Received Data
-                if self.__events[EventTypes.RECEIVED]:
-                    self.__events[EventTypes.RECEIVED](self, data, self.__socket.getsockname(), addr)
+                if data and len(data) != 0:
+                    # Received Data
+                    if self.__events[EventTypes.RECEIVED]:
+                        self.__events[EventTypes.RECEIVED](self, data, self.__socket.getsockname(), addr)
         if self.__events[EventTypes.STOPED]:
             self.__events[EventTypes.STOPED](self)
 
-    def _doAddMembership(self, ip):
+    def __doAddMembership(self, ip):
         try:
             mreq = struct.pack('4sL', socket.inet_aton(ip), socket.INADDR_ANY)
             self.__socket.setsockopt(
@@ -246,7 +260,7 @@ class CastReceiver:
             if self.__events[EventTypes.JOINED_GROUP]:
                 self.__events[EventTypes.JOINED_GROUP](self, ip)
 
-    def _doDropMembership(self, ip):
+    def __doDropMembership(self, ip):
         try:
             mreq = struct.pack('4sL', socket.inet_aton(ip), socket.INADDR_ANY)
             self.__socket.setsockopt(
