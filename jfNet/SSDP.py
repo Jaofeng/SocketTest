@@ -13,14 +13,8 @@ SSDP_PORT = 1900
 SSDP_MULITCAST_IP = '239.255.255.250'
 SEARCH_RULE = re.compile(r'^M-SEARCH \* HTTP\/1\.1[.\n]*(?i)HOST:\W?239\.255\.255\.250:1900', flags=re.RegexFlag.IGNORECASE)
 NOTIFY_RULE = re.compile(r'^NOTIFY \* HTTP\/1\.1[.\n]*(?i)HOST:\W?239\.255\.255\.250:1900')
-NT_RULE = re.compile(r'(?i)NT:\W?(.*)')     # NT:\W?mpHost:(.*)
-NTS_RULE = re.compile(r'(?i)NTS:\W?ssdp:(.*)')
-MAN_RULE = re.compile(r'(?i)MAN:\W?"ssdp:discover"')
-CACHE_CONTROL = re.compile(r'(?i)CACHE-CONTROL:.*max-age=(\d*)')
-# USN_RULE = re.compile(r'USN:\W?(([0-9a-fA-F]{2}:?){6});(\d+);?(.*)')
-USN_RULE = re.compile(r'(?i)USN:\W?(.*)')
-ST_RULE = re.compile(r'(?i)ST:\W?(.*)')
 MAC_RULE = re.compile(r'([0-9a-fA-F]{2}:){5}([0-9a-fA-F]{2})')
+MAX_AGE = re.compile(r'max-age\W?=\W?(\d{1,})')
 
 __all__ = ['SsdpEvents', 'SsdpInfo', 'SsdpContent', 'SsdpService']
 
@@ -89,7 +83,7 @@ class SsdpService:
             SsdpEvents.RECEIVED_BYEBYE: None,
             SsdpEvents.SENDED_SEARCH: None,
             SsdpEvents.SENDED_NOTIFY: None,
-            SsdpEvents.LOGGING: None
+            EventTypes.LOGGING: None
         }
         self.__devices: list = []
         self.__st_rule = None
@@ -116,35 +110,34 @@ class SsdpService:
 
     def __createReceiver(self, port, *ips):
         # args : Listen Port, Group Ip1, Group Ip2, ...
-        self._logMessage(INFO, f'Creating SSDP Listener @ Port: {port}')
+        self.__logMessage(INFO, f'Creating SSDP Listener @ Port: {port}')
         self.__rcv = CastReceiver(port)
         self.__rcv.bind(key=EventTypes.RECEIVED, evt=self.__dataReceived)
         self.__rcv.reusePort = True
+        self.__rcv.reuseAddr = True
         self.__rcv.joinGroup(*ips)
         self.__rcv.recvBuffer = 1024
         self.__rcv.start()
 
     def __stopReceiver(self, *args):
         if self.__rcv and self.__rcv.isAlive:
-            self._logMessage(INFO, 'Stopping SSDP Listener...')
+            self.__logMessage(INFO, 'Stopping SSDP Listener...')
             self.__rcv.stop()
         self.__rcv = None
 
     def __createSender(self, *args):
-        self._logMessage(INFO, 'Creating SSDP Sender')
+        self.__logMessage(INFO, 'Creating SSDP Sender')
         self.__snd = CastSender(SSDP_TTL)
         self.__snd.bind(key=EventTypes.SENDED, evt=self.__dataSended)
 
     def __stopSender(self, *args):
         if self.__snd:
-            self._logMessage(INFO, 'Stopping Multicast Sender...')
+            self.__logMessage(INFO, 'Stopping Multicast Sender...')
             self.__snd = None
 
     def __dataReceived(self, *args):
         ipRemote, _ = args[3]
-        dStr = args[1]
-        if isinstance(dStr, bytearray):
-            dStr = dStr.decode('ascii')
+        dStr = str(args[1], 'iso-8859-1')
         cnt = SsdpContent(dStr)
         if cnt.method == 'M-SEARCH' and cnt.MAN == '"ssdp:discover"':
             self.__recSearch(ipRemote, cnt)
@@ -154,7 +147,7 @@ class SsdpService:
     def __dataSended(self, *args):
         ip, _ = args[2]
         dStr = args[1]
-        if isinstance(dStr, bytearray):
+        if isinstance(dStr, bytearray) or isinstance(dStr, bytes):
             dStr = dStr.decode('utf-8')
         if SEARCH_RULE.match(dStr):
             evt = SsdpEvents.SENDED_SEARCH
@@ -166,7 +159,7 @@ class SsdpService:
     def __recSearch(self, ip, cnt):
         if self.__st_rule:
             if (callable(self.__st_rule) and not self.__st_rule(cnt)) or\
-                    (isinstance(self.__st_rule, str) and not re.match(self.__st_rule, cnt.ST)):
+                    (isinstance(self.__st_rule, re.Pattern) and not self.__st_rule.search(cnt.ST)):
                 return
         if self.__events[SsdpEvents.RECEIVED_SEARCH]:
             self.__events[SsdpEvents.RECEIVED_SEARCH](self, cnt)
@@ -174,39 +167,38 @@ class SsdpService:
     def __recNotify(self, ip, cnt):
         if self.__nt_rule:
             if (callable(self.__nt_rule) and not self.__nt_rule(cnt)) or\
-                    (isinstance(self.__nt_rule, str) and not re.match(self.__nt_rule, cnt.USN)):
+                    (isinstance(self.__nt_rule, re.Pattern) and not self.__nt_rule.search(cnt.USN)):
                 return
         if cnt.NTS == 'ssdp:alive':
-            m = re.search(r'max-age=(\d{1,})', cnt['CACHE-CONTROL'])
+            m = MAX_AGE.search(cnt['CACHE-CONTROL'])
             if not m:
-                self._logMessage(WARN, 'Messing Content: max-age in Cache-Control!')
+                self.__logMessage(WARN, 'Messing Content: max-age in Cache-Control!')
                 return
             maxAge = int(m.group(1))
             di = self.findDevices(ip=ip)
-            if not di:
+            if di and len(di) != 0:
+                di = di[0]
+                di.lastTime = time.time()
+            else:
                 di = SsdpInfo(
                     ip=ip, maxAge=maxAge, lastTime=time.time(),
                     content=cnt
                 )
                 self.__devices.append(di)
-            else:
-                di = di[0]
-                di.lastTime = time.time()
             if self.__events[SsdpEvents.RECEIVED_NOTIFY]:
                 self.__events[SsdpEvents.RECEIVED_NOTIFY](self, di)
         elif cnt.NTS == 'ssdp:byebye':
             # NOTIFY - BYEBYE
             di = self.findDevices(ip=ip)
-            if not di:
-                return
-            self.__devices.remove(di[0])
-            if self.__events[SsdpEvents.RECEIVED_BYEBYE]:
-                self.__events[SsdpEvents.RECEIVED_BYEBYE](self, di[0])
+            if di and len(di) != 0:
+                self.__devices.remove(di[0])
+                if self.__events[SsdpEvents.RECEIVED_BYEBYE]:
+                    self.__events[SsdpEvents.RECEIVED_BYEBYE](self, di[0])
 
     # Private Event Methods
-    def _logMessage(self, lv, msg):
-        if self.__events[SsdpEvents.LOGGING]:
-            self.__events[SsdpEvents.LOGGING](self, lv, msg)
+    def __logMessage(self, lv, msg):
+        if self.__events[EventTypes.LOGGING]:
+            self.__events[EventTypes.LOGGING](self, lv, msg)
 
     # Public Methods
     def start_listen(self):
@@ -278,8 +270,10 @@ class SsdpService:
             `rule` `str` -- 過濾條件, 以 ST 的內容作為過濾內容. 可傳入 Regular Expression 字串
             `rule` `callable` -- 過濾用函式, 呼叫此函式時, 將會傳入 SSDP 的 HTML Hdader(SSDP_Content) 內容
         '''
-        if callable(rule) or isinstance(rule, str):
+        if callable(rule):
             self.__st_rule = rule
+        elif isinstance(rule, str):
+            self.__st_rule = re.compile(rule)
         else:
             raise TypeError
 
@@ -311,13 +305,13 @@ class SsdpService:
             try:
                 self.__snd.send((SSDP_MULITCAST_IP, SSDP_PORT), content)
             except Exception as ex:
-                self._logMessage(ERROR, ex.msg)
+                self.__logMessage(ERROR, ex.msg)
 
     def notify_once(self, content):
         try:
             self.__snd.send((SSDP_MULITCAST_IP, SSDP_PORT), content)
         except Exception as ex:
-            self._logMessage(ERROR, ex.msg)
+            self.__logMessage(ERROR, ex.msg)
 
     def stop_notify(self):
         self.__evt_stop_notify.set()
@@ -329,7 +323,9 @@ class SsdpService:
             `rule` `str` -- 過濾條件, 以 USN 的內容作為過濾內容. 可傳入 Regular Expression 字串
             `rule` `callable` -- 過濾用函式, 呼叫此函式時, 將會傳入 SSDP 的 HTML Hdader(SSDP_Content) 內容
         '''
-        if callable(rule) or isinstance(rule, str):
+        if callable(rule):
             self.__nt_rule = rule
+        elif isinstance(rule, str):
+            self.__nt_rule = re.compile(rule)
         else:
             raise TypeError

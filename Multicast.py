@@ -1,9 +1,9 @@
 #! /usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-import os, sys, time, traceback, datetime, socket
+import time, traceback, socket
 from jfNet import CastReceiver as jcr, CastSender as jcs
-from jfNet import *
+from jfNet import EventTypes
 
 _rcv = None
 _snd = None
@@ -31,29 +31,34 @@ def onJoinedGroup(*args):
 def onReceived(*args):
     global _counter
     _counter += 1
+    mc = args[0]
     ipL, portL = args[2]
     ipR, portR = args[3]
     dStr = args[1]
     if isinstance(dStr, bytearray):
         dStr = toHexStr(dStr)
-    print('Received Data from {}:{} -> {}:{}'.format(ipR, portR, ipL, portL))
-    print('[\x1B[92m{:>3}\x1B[39m] : \x1B[97m{}\x1B[0m'.format(_counter, dStr))
+    print(f'[\x1B[91m{"R" if isinstance(mc, jcr.CastReceiver) else "S"}\x1B[39m] Received Data from {ipR}:{portR} -> {ipL}:{portL}')
+    print(f'[\x1B[92m{_counter:>3}\x1B[39m] : \x1B[97m{dStr}\x1B[0m')
+    if isinstance(mc, jcr.CastReceiver):
+        mc.send((ipR, portR), args[1])
 
 
 def onSended(*args):
+    mc = args[0]
     ip,port = args[2]
     dStr = args[1]
     if isinstance(dStr, bytearray):
         dStr = toHexStr(dStr)
-    print('Data has send to {}:{}\n :  {}'.format(ip, port, dStr))
+    print(f'[\x1B[91m{"R" if isinstance(mc, jcr.CastReceiver) else "S"}\x1B[39m] Data has send to {ip}:{port}\n :  {dStr}')
 
 
 def onSendfail(*args):
+    mc = args[0]
     ip,port = args[2]
     dStr = args[1]
     if isinstance(dStr, bytearray):
         dStr = toHexStr(dStr)
-    print('Send data to {}:{} fail\n : {}\n{}'.format(ip, port, dStr, arg[3]))
+    print(f'[{"R" if isinstance(mc, jcr.CastReceiver) else "S"}] Send data to {ip}:{port} fail\n :  {dStr}\n{args[3]}')
     print(traceback.format_exc())
 
 
@@ -73,6 +78,8 @@ def createReceiver(*args):
     _rcv.bind(key=EventTypes.STOPED, evt=onStoped)
     _rcv.bind(key=EventTypes.RECEIVED, evt=onReceived)
     _rcv.bind(key=EventTypes.JOINED_GROUP, evt=onJoinedGroup)
+    _rcv.bind(key=EventTypes.SENDED, evt=onSended)
+    _rcv.bind(key=EventTypes.SENDFAIL, evt=onSendfail)
     _rcv.joinGroup(args[idx:])
     _rcv.start()
 
@@ -98,7 +105,7 @@ def stopSender(*args):
 
 
 def sendData(*args):
-    global _snd
+    global _snd, _counter
     if len(args) < 3:
         print('Missing some arg')
     addr = (args[0], int(args[1]))
@@ -108,7 +115,12 @@ def sendData(*args):
         data = bytearray.fromhex(data[2:])
     else:
         data = bytearray(data.encode('utf-8'))
-    _snd.send(addr, data)
+    res = _snd.send(addr, data, True)
+    if res:
+        _counter += 1
+        dStr = toHexStr(res)
+        print(f'[\x1B[91mS\x1B[39m] Received Feedback Data')
+        print(f'[\x1B[92m{_counter:>3}\x1B[39m] : \x1B[97m{dStr}\x1B[0m')
 
 
 def joinGroup(*args):
@@ -166,7 +178,7 @@ def execCommand(cmd):
             dropGroup(*(cmds[1:]))
         elif cmds[0] == 'send':
             sendData(*(cmds[1:]))
-    except:
+    except Exception:
         print(traceback.format_exc())
 
 

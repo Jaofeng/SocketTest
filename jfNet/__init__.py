@@ -6,18 +6,25 @@
 # Author : Jaofeng Chen
 #########################################
 
+import socket
 from enum import Enum, unique
+from typing import List
 
+__all__ = [
+    'EventTypes', 'SocketError', 'getLocalIPs'
+]
 # jfSocket.SocketError 錯誤代碼清單
-errcode:dict = {}
-errcode[1000] = '連線已存在'
-errcode[1001] = '遠端連線已斷開，或尚未連線'
-errcode[1002] = '位址已存在'
-errcode[1003] = '位址不存在'
-errcode[1004] = '多播(Multicast)位址不正確，應為 224.0.0.0 ~ 239.255.255.255'
-errcode[1005] = '[多播]此位址已在使用中，請使用 reuseAddr 與 reusePort'
+errcode: dict = {
+    1000: '連線已存在',
+    1001: '遠端連線已斷開，或尚未連線',
+    1002: '位址已存在',
+    1003: '位址不存在',
+    1004: '多播(Multicast)位址不正確，應為 224.0.0.0 ~ 239.255.255.255',
+    1005: '[多播]此位址已在使用中，請使用 reuseAddr 與 reusePort',
+}
 
 
+@unique
 class EventTypes(Enum):
     """
     事件代碼列舉
@@ -31,6 +38,7 @@ class EventTypes(Enum):
     STARTED = 'onStarted'
     STOPED = 'onStoped'
     JOINED_GROUP = 'onJoinedGroup'
+    LOGGING = 'onLogging'
 
 
 class SocketError(Exception):
@@ -47,7 +55,7 @@ class SocketError(Exception):
         self.innererr = err
 
     def __str__(self):
-        return '[ErrNo:{}] {}'.format(self.errno, self.message)
+        return f'[ErrNo:{self.errno}] {self.message}'
 
     @property
     def message(self) -> str:
@@ -56,3 +64,8 @@ class SocketError(Exception):
         回傳: `str`
         """
         return errcode[self.errno]
+
+
+def getLocalIPs() -> List[str]:
+    _, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    return ips

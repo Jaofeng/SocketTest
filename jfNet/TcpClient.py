@@ -27,7 +27,7 @@ class TcpClient:
     _remote:tuple = None
     recvBuffer:input = 256
 
-    def __init__(self, socket:socket.socket=None):
+    def __init__(self, socket: socket.socket = None):
         if socket and isinstance(socket, socket.socket):
             self._assign(socket)
 
