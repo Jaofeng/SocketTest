@@ -1,9 +1,10 @@
 #! /usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-import time, threading, re
+import time, re
 from logging import ERROR, WARN, INFO
 from enum import Enum
+from threading import Thread, Lock, Event
 from . import EventTypes
 from .CastReceiver import CastReceiver
 from .CastSender import CastSender
@@ -25,6 +26,8 @@ class SsdpEvents(Enum):
     RECEIVED_BYEBYE = 'onGetSSDPByebye'
     SENDED_SEARCH = 'onSendSSDPSearch'
     SENDED_NOTIFY = 'onSendSSDPNotify'
+    DEVICE_JOINED = 'onDeviceJoined'
+    DEVICE_LEAVED = 'onDeviceLeaved'
     LOGGING = 'onLogging'
 
 
@@ -53,6 +56,9 @@ class SsdpInfo(dict):
             return self[attr]
         else:
             return None
+
+    def clone(self):
+        return SsdpInfo(**self)
 
 
 class SsdpContent(SsdpInfo):
@@ -83,14 +89,17 @@ class SsdpService:
             SsdpEvents.RECEIVED_BYEBYE: None,
             SsdpEvents.SENDED_SEARCH: None,
             SsdpEvents.SENDED_NOTIFY: None,
+            SsdpEvents.DEVICE_JOINED: None,
+            SsdpEvents.DEVICE_LEAVED: None,
             EventTypes.LOGGING: None
         }
         self.__devices: list = []
         self.__st_rule = None
         self.__nt_rule = None
-        self.__evt_stop_notify = threading.Event()
-        self.__evt_stop_search = threading.Event()
-        self.__evt_exit = threading.Event()
+        self.__evt_stop_notify = Event()
+        self.__evt_stop_search = Event()
+        self.__evt_exit = Event()
+        self.__listLocker = Lock()
         self.__createSender()
 
     def __del__(self):
@@ -175,25 +184,35 @@ class SsdpService:
                 self.__logMessage(WARN, 'Messing Content: max-age in Cache-Control!')
                 return
             maxAge = int(m.group(1))
-            di = self.findDevices(ip=ip)
-            if di and len(di) != 0:
-                di = di[0]
-                di.lastTime = time.time()
-            else:
-                di = SsdpInfo(
-                    ip=ip, maxAge=maxAge, lastTime=time.time(),
-                    content=cnt
-                )
-                self.__devices.append(di)
+            isJoin = False
+            with self.__listLocker:
+                di = self.findDevices(ip=ip)
+                if di and len(di) != 0:
+                    di = di[0]
+                    di.lastTime = time.time()
+                else:
+                    di = SsdpInfo(
+                        ip=ip, maxAge=maxAge, lastTime=time.time(),
+                        content=cnt
+                    )
+                    self.__devices.append(di)
+                    isJoin = True
             if self.__events[SsdpEvents.RECEIVED_NOTIFY]:
                 self.__events[SsdpEvents.RECEIVED_NOTIFY](self, di)
+            if isJoin:
+                if self.__events[SsdpEvents.DEVICE_JOINED]:
+                    self.__events[SsdpEvents.DEVICE_JOINED](self, di)
         elif cnt.NTS == 'ssdp:byebye':
             # NOTIFY - BYEBYE
-            di = self.findDevices(ip=ip)
+            with self.__listLocker:
+                di = self.findDevices(ip=ip)
+                if di and len(di) != 0:
+                    self.__devices.remove(di[0])
             if di and len(di) != 0:
-                self.__devices.remove(di[0])
                 if self.__events[SsdpEvents.RECEIVED_BYEBYE]:
                     self.__events[SsdpEvents.RECEIVED_BYEBYE](self, di[0])
+                if self.__events[SsdpEvents.DEVICE_LEAVED]:
+                    self.__events[SsdpEvents.DEVICE_LEAVED](self, di[0])
 
     # Private Event Methods
     def __logMessage(self, lv, msg):
@@ -329,3 +348,13 @@ class SsdpService:
             self.__nt_rule = re.compile(rule)
         else:
             raise TypeError
+
+    def clearDevices(self):
+        if not self.__devices or len(self.__devices) == 0:
+            return
+        d = self.__devices.pop()
+        while d:
+            del d
+            if len(self.__devices) == 0:
+                break
+            d = self.__devices.pop()
